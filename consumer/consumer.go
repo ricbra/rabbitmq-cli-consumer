@@ -39,16 +39,10 @@ func (c *Consumer) Consume() {
 			input := base64.StdEncoding.EncodeToString(d.Body)
 			cmd := c.Factory.Create(input)
 			if command.Execute(cmd) {
-
+				d.Ack(true)
+			} else {
+				d.Nack(true, true)
 			}
-
-			d.Nack(true, true)
-			//				if executeCommand(command, []string{arguments["command"], input, fmt.Sprintf("--env=%s", arguments["env"])}) {
-			//					d.Ack(true)
-			//				} else {
-			//					d.Nack(true, true)
-			//				}
-
 		}
 	}()
 	fmt.Println("  [*] Waiting for messages")
