@@ -7,7 +7,7 @@ import (
 	"github.com/ricbra/rabbitmq-cli-consumer/command"
 	"github.com/ricbra/rabbitmq-cli-consumer/config"
 	"github.com/streadway/amqp"
-	"os"
+	"log"
 )
 
 type Consumer struct {
@@ -15,18 +15,18 @@ type Consumer struct {
 	Connection *amqp.Connection
 	Queue      string
 	Factory    *command.CommandFactory
+	ErrLogger  *log.Logger
+	Executer   *command.CommandExecuter
 }
 
 func (c *Consumer) Consume() {
 	if err := c.Channel.Qos(3, 0, false); err != nil {
-		panic(fmt.Sprintf("Failed to set QoS: %s", err))
+		c.ErrLogger.Fatalf("Failed to set QoS: %s", err)
 	}
 
 	msgs, err := c.Channel.Consume(c.Queue, "", false, false, false, false, nil)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-		panic(fmt.Sprintf("Failed to register a consumer: %s"))
+		c.ErrLogger.Fatalf("Failed to register a consumer: %s", err)
 	}
 
 	defer c.Connection.Close()
@@ -38,7 +38,7 @@ func (c *Consumer) Consume() {
 		for d := range msgs {
 			input := base64.StdEncoding.EncodeToString(d.Body)
 			cmd := c.Factory.Create(input)
-			if command.Execute(cmd) {
+			if c.Executer.Execute(cmd) {
 				d.Ack(true)
 			} else {
 				d.Nack(true, true)
@@ -49,7 +49,7 @@ func (c *Consumer) Consume() {
 	<-forever
 }
 
-func New(cfg *config.Config, factory *command.CommandFactory) (*Consumer, error) {
+func New(cfg *config.Config, factory *command.CommandFactory, errLogger *log.Logger) (*Consumer, error) {
 	uri := fmt.Sprintf(
 		"amqp://%s:%s@%s:%s%s",
 		cfg.RabbitMq.Username,
@@ -79,5 +79,7 @@ func New(cfg *config.Config, factory *command.CommandFactory) (*Consumer, error)
 		Connection: conn,
 		Queue:      cfg.RabbitMq.Queue,
 		Factory:    factory,
+		ErrLogger:	errLogger,
+		Executer:	command.New(errLogger),
 	}, nil
 }

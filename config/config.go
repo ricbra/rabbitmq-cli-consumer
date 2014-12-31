@@ -16,7 +16,7 @@ type Config struct {
 	}
 	Logs struct {
 		Error  string
-		Access string
+		Info   string
 	}
 }
 

@@ -1,12 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/ricbra/rabbitmq-cli-consumer/command"
 	"github.com/ricbra/rabbitmq-cli-consumer/config"
 	"github.com/ricbra/rabbitmq-cli-consumer/consumer"
 	"os"
+	"log"
+	"io"
 )
 
 func main() {
@@ -32,19 +33,26 @@ func main() {
 			os.Exit(1)
 		}
 
+		errLogger := log.New(os.Stderr, "", log.Ldate | log.Ltime)
 		cfg, err := config.LoadAndParse(c.String("configuration"))
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed parsing configuration: %s\n", err)
-			os.Exit(1)
+			errLogger.Fatalf("Failed parsing configuration: %s\n", err)
 		}
 
+		file, err := os.Create(cfg.Logs.Error)
+
+		if err != nil {
+			errLogger.Fatalf("Failed creating error log: %s\n", err)
+		}
+
+		writer := io.MultiWriter(os.Stderr, file)
+		errLogger = log.New(writer, "", log.Ldate | log.Ltime)
 		factory := command.Factory(c.String("executable"))
 
-		client, err := consumer.New(cfg, factory)
+		client, err := consumer.New(cfg, factory, errLogger)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed creating consumer: %s", err)
-			os.Exit(1)
+			errLogger.Fatalf( "Failed creating consumer: %s", err)
 		}
 
 		client.Consume()
