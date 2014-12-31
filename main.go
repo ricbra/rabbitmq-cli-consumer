@@ -40,14 +40,12 @@ func main() {
 			errLogger.Fatalf("Failed parsing configuration: %s\n", err)
 		}
 
-		file, err := os.Create(cfg.Logs.Error)
+		errLogger, err = createMultiLogger(cfg.Logs.Error, os.Stderr)
 
 		if err != nil {
 			errLogger.Fatalf("Failed creating error log: %s\n", err)
 		}
 
-		writer := io.MultiWriter(os.Stderr, file)
-		errLogger = log.New(writer, "", log.Ldate | log.Ltime)
 		factory := command.Factory(c.String("executable"))
 
 		client, err := consumer.New(cfg, factory, errLogger)
@@ -59,4 +57,14 @@ func main() {
 	}
 
 	app.Run(os.Args)
+}
+
+func createMultiLogger(filename string, out io.Writer) (*log.Logger, error) {
+	file, err := os.Create(filename)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return log.New(io.MultiWriter(out, file), "", log.Ldate | log.Ltime), nil
 }
