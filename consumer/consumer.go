@@ -49,7 +49,7 @@ func (c *Consumer) Consume() {
 	<-forever
 }
 
-func New(cfg *config.Config, factory *command.CommandFactory, errLogger *log.Logger) (*Consumer, error) {
+func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogger *log.Logger) (*Consumer, error) {
 	uri := fmt.Sprintf(
 		"amqp://%s:%s@%s:%s%s",
 		cfg.RabbitMq.Username,
@@ -80,6 +80,6 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger *log.Log
 		Queue:      cfg.RabbitMq.Queue,
 		Factory:    factory,
 		ErrLogger:	errLogger,
-		Executer:	command.New(errLogger),
+		Executer:	command.New(errLogger, infLogger),
 	}, nil
 }

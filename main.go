@@ -33,22 +33,23 @@ func main() {
 			os.Exit(1)
 		}
 
-		errLogger := log.New(os.Stderr, "", log.Ldate | log.Ltime)
+		logger := log.New(os.Stderr, "", log.Ldate | log.Ltime)
 		cfg, err := config.LoadAndParse(c.String("configuration"))
 
 		if err != nil {
-			errLogger.Fatalf("Failed parsing configuration: %s\n", err)
+			logger.Fatalf("Failed parsing configuration: %s\n", err)
 		}
 
-		errLogger, err = createMultiLogger(cfg.Logs.Error, os.Stderr)
+		errLogger, err := createMultiLogger(cfg.Logs.Error, os.Stderr)
+		infLogger, err := createMultiLogger(cfg.Logs.Info, os.Stdout)
 
 		if err != nil {
-			errLogger.Fatalf("Failed creating error log: %s\n", err)
+			logger.Fatalf("Failed creating error log: %s\n", err)
 		}
 
 		factory := command.Factory(c.String("executable"))
 
-		client, err := consumer.New(cfg, factory, errLogger)
+		client, err := consumer.New(cfg, factory, errLogger, infLogger)
 		if err != nil {
 			errLogger.Fatalf( "Failed creating consumer: %s", err)
 		}
