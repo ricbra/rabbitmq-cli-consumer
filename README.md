@@ -11,6 +11,31 @@ have to restart your consumers. A little bit dramatic if you ask me.
 This library aims at PHP developers solving the above described problem with RabbitMQ. Why don't let the polling over to
 a language as Go which is much better suited to run long running tasks.
 
+# Installation
+
+You have the choice to either compile yourself or by installing via package.
+
+## Compiling
+
+This section assumes you're familiar with the Go language.
+
+Use <code>go get</code> to get the source local:
+
+    $ go get github.com/ricbra/rabbitmq-cli-consumer
+
+Change to the directory, e.g.:
+
+    $ cd $GOPATH/src/github.com/ricbra/rabbitmq-cli-consumer
+
+Get the dependencies:
+
+    $ go get ./...
+
+Then build and/or install:
+
+    $ go build
+    $ go install
+
 # Usage
 
 Soon to follow.
