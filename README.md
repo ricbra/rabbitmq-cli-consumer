@@ -8,8 +8,8 @@ When using RabbitMQ with pure PHP consumers you have to deal with stability issu
 consumers regularly just like me. And try to solve the problem with supervisord. Which also means on every deploy you
 have to restart your consumers. A little bit dramatic if you ask me.
 
-This library aims at PHP developers solving the abone described problem with RabbitMQ. Wby don't let the polling over to
-a language as Go which is much more better suited to run long running tasks.
+This library aims at PHP developers solving the above described problem with RabbitMQ. Why don't let the polling over to
+a language as Go which is much better suited to run long running tasks.
 
 # Usage
 
