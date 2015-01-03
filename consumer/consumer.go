@@ -16,18 +16,23 @@ type Consumer struct {
 	Queue      string
 	Factory    *command.CommandFactory
 	ErrLogger  *log.Logger
+	InfLogger  *log.Logger
 	Executer   *command.CommandExecuter
 }
 
 func (c *Consumer) Consume() {
+	c.InfLogger.Println("Setting QoS... ")
 	if err := c.Channel.Qos(3, 0, false); err != nil {
 		c.ErrLogger.Fatalf("Failed to set QoS: %s", err)
 	}
+	c.InfLogger.Println("Succeeded setting QoS.")
 
+	c.InfLogger.Println("Registering consumer... ")
 	msgs, err := c.Channel.Consume(c.Queue, "", false, false, false, false, nil)
 	if err != nil {
 		c.ErrLogger.Fatalf("Failed to register a consumer: %s", err)
 	}
+	c.InfLogger.Println("Succeeded registering consumer.")
 
 	defer c.Connection.Close()
 	defer c.Channel.Close()
@@ -45,7 +50,7 @@ func (c *Consumer) Consume() {
 			}
 		}
 	}()
-	fmt.Println("  [*] Waiting for messages")
+	c.InfLogger.Println("Waiting for messages...")
 	<-forever
 }
 
@@ -80,6 +85,7 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 		Queue:      cfg.RabbitMq.Queue,
 		Factory:    factory,
 		ErrLogger:	errLogger,
+		InfLogger:	infLogger,
 		Executer:	command.New(errLogger, infLogger),
 	}, nil
 }
