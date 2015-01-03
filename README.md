@@ -13,7 +13,11 @@ a language as Go which is much better suited to run long running tasks.
 
 # Installation
 
-You have the choice to either compile yourself or by installing via package.
+You have the choice to either compile yourself or by installing via package or binary.
+
+## Binary
+
+
 
 ## Compiling
 
@@ -21,27 +25,77 @@ This section assumes you're familiar with the Go language.
 
 Use <code>go get</code> to get the source local:
 
-    $ go get github.com/ricbra/rabbitmq-cli-consumer
+```bash
+$ go get github.com/ricbra/rabbitmq-cli-consumer
+```
 
 Change to the directory, e.g.:
 
-    $ cd $GOPATH/src/github.com/ricbra/rabbitmq-cli-consumer
+```bash
+$ cd $GOPATH/src/github.com/ricbra/rabbitmq-cli-consumer
+```
 
 Get the dependencies:
 
-    $ go get ./...
+```bash
+$ go get ./...
+```
 
 Then build and/or install:
 
-    $ go build
-    $ go install
+```bash
+$ go build
+$ go install
+```
 
 # Usage
 
-Soon to follow.
+Run without arguments or with <code>--help</code> switch to show the helptext:
+
+    $ rabbitmq-cli-consumer
+    NAME:
+       rabbitmq-cli-consumer - Consume RabbitMQ easily to any cli program
+
+    USAGE:
+       rabbitmq-cli-consumer [global options] command [command options] [arguments...]
+
+    VERSION:
+       0.0.1
+
+    AUTHOR:
+      Richard van den Brand - <richard@vandenbrand.org>
+
+    COMMANDS:
+       help, h	Shows a list of commands or help for one command
+
+    GLOBAL OPTIONS:
+       --executable, -e 	Location of executable
+       --configuration, -c 	Location of configuration file
+       --help, -h		show help
+       --version, -v	print the version
+
+A configuration file is required. Example:
+
+```ini
+[rabbitmq]
+host = localhost
+username = username-of-rabbitmq-user
+password = secret
+vhost=/your-vhost
+port=5672
+queue=name-of-queue
+
+[logs]
+error = /location/to/error.log
+info = /location/to/info.log
+```
+
+When you've created the configuration you can start the consumer like this:
+
+    $ rabbitmq-cli-consumer -e "/path/to/your/app argument --flag" -c /path/to/your/configuration.conf
 
 # Developing
 
-Same here.
+Todo.
 
 
