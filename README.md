@@ -17,7 +17,7 @@ You have the choice to either compile yourself or by installing via package or b
 
 ## Binary
 
-
+Binaries can be found at: https://github.com/ricbra/rabbitmq-cli-consumer/releases
 
 ## Compiling
 
@@ -101,6 +101,6 @@ Run without <code>-V</code> to get rid of the output:
 
 # Developing
 
-Todo.
+Missing anything? Found a bug? I love to see your PR.
 
 
