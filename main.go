@@ -26,12 +26,18 @@ func main() {
 			Name:  "configuration, c",
 			Usage: "Location of configuration file",
 		},
+		cli.BoolFlag{
+			Name:  "verbose, V",
+			Usage: "Enable verbose mode (logs to stdout and stderr)",
+		},
 	}
 	app.Action = func(c *cli.Context) {
 		if c.String("configuration") == "" && c.String("executable") == "" {
 			cli.ShowAppHelp(c)
 			os.Exit(1)
 		}
+
+		verbose := c.Bool("verbose")
 
 		logger := log.New(os.Stderr, "", log.Ldate | log.Ltime)
 		cfg, err := config.LoadAndParse(c.String("configuration"))
@@ -40,12 +46,16 @@ func main() {
 			logger.Fatalf("Failed parsing configuration: %s\n", err)
 		}
 
-		errLogger, err := createMultiLogger(cfg.Logs.Error, os.Stderr)
-		infLogger, err := createMultiLogger(cfg.Logs.Info, os.Stdout)
-
+		errLogger, err := createLogger(cfg.Logs.Error, verbose, os.Stderr)
 		if err != nil {
-			logger.Fatalf("Failed creating error log: %s\n", err)
+			logger.Fatalf("Failed creating error log: %s", err)
 		}
+
+		infLogger, err := createLogger(cfg.Logs.Info, verbose, os.Stdout)
+		if err != nil {
+			logger.Fatalf("Failed creating info log: %s", err)
+		}
+
 
 		factory := command.Factory(c.String("executable"))
 
@@ -60,12 +70,20 @@ func main() {
 	app.Run(os.Args)
 }
 
-func createMultiLogger(filename string, out io.Writer) (*log.Logger, error) {
+func createLogger(filename string, verbose bool, out io.Writer) (*log.Logger, error) {
 	file, err := os.Create(filename)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return log.New(io.MultiWriter(out, file), "", log.Ldate | log.Ltime), nil
+	var writers = []io.Writer{
+		file,
+	}
+
+	if verbose {
+		writers = append(writers, out)
+	}
+
+	return log.New(io.MultiWriter(writers...), "", log.Ldate | log.Ltime), nil
 }

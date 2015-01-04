@@ -71,6 +71,7 @@ Run without arguments or with <code>--help</code> switch to show the helptext:
     GLOBAL OPTIONS:
        --executable, -e 	Location of executable
        --configuration, -c 	Location of configuration file
+       --verbose, -V	Enable verbose mode (logs to stdout and stderr)
        --help, -h		show help
        --version, -v	print the version
 
@@ -91,6 +92,10 @@ info = /location/to/info.log
 ```
 
 When you've created the configuration you can start the consumer like this:
+
+    $ rabbitmq-cli-consumer -e "/path/to/your/app argument --flag" -c /path/to/your/configuration.conf -V
+
+Run without <code>-V</code> to get rid of the output:
 
     $ rabbitmq-cli-consumer -e "/path/to/your/app argument --flag" -c /path/to/your/configuration.conf
 
