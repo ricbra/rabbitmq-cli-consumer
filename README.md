@@ -15,6 +15,24 @@ a language as Go which is much better suited to run long running tasks.
 
 You have the choice to either compile yourself or by installing via package or binary.
 
+## APT Package
+
+As I'm a Debian user myself Debian-based peeps are lucky and can use my APT repository.
+
+Add this line to your <code>/etc/apt/sources.list</code> file:
+
+    deb http://apt.vandenbrand.org/debian testing main
+
+Fetch and install GPG key:
+
+    $ wget http://apt.vandenbrand.org/apt.vandenbrand.org.gpg.key
+    $ sudo apt-key add apt.vandenbrand.org.gpg.key
+
+Update and install:
+
+    $ sudo apt-get update
+    $ sudo apt-get install rabbitmq-cli-consumer
+
 ## Binary
 
 Binaries can be found at: https://github.com/ricbra/rabbitmq-cli-consumer/releases
