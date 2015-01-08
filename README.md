@@ -93,6 +93,8 @@ Run without arguments or with <code>--help</code> switch to show the helptext:
        --help, -h		show help
        --version, -v	print the version
 
+## Configuration
+
 A configuration file is required. Example:
 
 ```ini
@@ -116,6 +118,72 @@ When you've created the configuration you can start the consumer like this:
 Run without <code>-V</code> to get rid of the output:
 
     $ rabbitmq-cli-consumer -e "/path/to/your/app argument --flag" -c /path/to/your/configuration.conf
+
+## The executable
+
+Your executable receives the message as the last argument. So consider the following:
+
+   $ rabbitmq-cli-consumer -e "/home/vagrant/current/app/command.php" -c example.conf -V
+
+The <code>command.php</code> file should look like this:
+
+```php
+#!/usr/bin/env php
+<?php
+// This contains first argument
+$message = $argv[1];
+
+// Decode to get original value
+$original = base64_decode($message);
+
+// Start processing
+if (do_heavy_lifting($original)) {
+    // All well, then return 0
+    exit(0);
+}
+
+// Let rabbitmq-cli-consumer know someting went wrong, message will be requeued.
+exit(1);
+
+```
+
+Or a Symfony2 example:
+
+    $ rabbitmq-cli-consumer -e "/path/to/symfony/app/console event:processing -e=prod" -c example.conf -V
+
+Command looks like this:
+
+```php
+<?php
+
+namespace Vendor\EventBundle\Command;
+
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+class TestCommand extends ContainerAwareCommand
+{
+    protected function configure()
+    {
+        $this
+            ->addArgument('event', InputArgument::REQUIRED)
+            ->setName('test:event')
+        ;
+
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $message = base64_decode($input->getArgument('event'));
+
+        $this->getContainer()->get('mailer')->send($message);
+
+        exit(0);
+    }
+}
+```
 
 # Developing
 
