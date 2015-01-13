@@ -85,8 +85,8 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 		Connection: conn,
 		Queue:      cfg.RabbitMq.Queue,
 		Factory:    factory,
-		ErrLogger:	errLogger,
-		InfLogger:	infLogger,
-		Executer:	command.New(errLogger, infLogger),
+		ErrLogger:  errLogger,
+		InfLogger:  infLogger,
+		Executer:   command.New(errLogger, infLogger),
 	}, nil
 }

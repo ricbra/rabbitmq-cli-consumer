@@ -15,8 +15,8 @@ type Config struct {
 		Queue    string
 	}
 	Logs struct {
-		Error  string
-		Info   string
+		Error string
+		Info  string
 	}
 }
 

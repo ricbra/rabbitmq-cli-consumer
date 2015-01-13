@@ -1,8 +1,8 @@
 package command
 
 import (
-	"os/exec"
 	"log"
+	"os/exec"
 )
 
 type CommandExecuter struct {

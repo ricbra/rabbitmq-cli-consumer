@@ -5,9 +5,9 @@ import (
 	"github.com/ricbra/rabbitmq-cli-consumer/command"
 	"github.com/ricbra/rabbitmq-cli-consumer/config"
 	"github.com/ricbra/rabbitmq-cli-consumer/consumer"
-	"os"
-	"log"
 	"io"
+	"log"
+	"os"
 )
 
 func main() {
@@ -39,7 +39,7 @@ func main() {
 
 		verbose := c.Bool("verbose")
 
-		logger := log.New(os.Stderr, "", log.Ldate | log.Ltime)
+		logger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
 		cfg, err := config.LoadAndParse(c.String("configuration"))
 
 		if err != nil {
@@ -56,12 +56,11 @@ func main() {
 			logger.Fatalf("Failed creating info log: %s", err)
 		}
 
-
 		factory := command.Factory(c.String("executable"))
 
 		client, err := consumer.New(cfg, factory, errLogger, infLogger)
 		if err != nil {
-			errLogger.Fatalf( "Failed creating consumer: %s", err)
+			errLogger.Fatalf("Failed creating consumer: %s", err)
 		}
 
 		client.Consume()
@@ -85,5 +84,5 @@ func createLogger(filename string, verbose bool, out io.Writer) (*log.Logger, er
 		writers = append(writers, out)
 	}
 
-	return log.New(io.MultiWriter(writers...), "", log.Ldate | log.Ltime), nil
+	return log.New(io.MultiWriter(writers...), "", log.Ldate|log.Ltime), nil
 }
