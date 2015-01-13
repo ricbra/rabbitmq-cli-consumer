@@ -71,7 +71,7 @@ func main() {
 }
 
 func createLogger(filename string, verbose bool, out io.Writer) (*log.Logger, error) {
-	file, err := os.Create(filename)
+	file, err := os.OpenFile(filename, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
 
 	if err != nil {
 		return nil, err
