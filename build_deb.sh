@@ -1,5 +1,13 @@
 #!/bin/bash
 
+if [ -z ${1+x} ];
+    then
+        echo "Missing version number!";
+        exit
+    else
+        echo "Preparing version $1"
+fi
+
 ARCHS['amd64']='amd64'
 ARCHS['386']='i386'
 
