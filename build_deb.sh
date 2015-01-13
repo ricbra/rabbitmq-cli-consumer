@@ -4,6 +4,7 @@ ARCHS['amd64']='amd64'
 ARCHS['386']='i386'
 
 DIR=`mktemp -d`
+CWD=`pwd`
 
 for ARCH in 'amd64' '386'
 do
@@ -12,6 +13,14 @@ do
     fpm -s dir -t deb -C $DIR/$ARCH -a $BUILD --name rabbitmq-cli-consumer --version $1 --description "Consume RabbitMQ messages into any cli program" .
 done
 
+for ARCH in 'linux/amd64' 'linux/386' 'linux/arm' 'darwin/amd64'
+do
+    arch_suffix=${ARCH/\//-}
+    gox -osarch="$ARCH" -output="$DIR/{{.Dir}}"
+    cd $DIR
+    tar -zcvf $CWD/rabbitmq-cli-consumer-$arch_suffix.tar.gz rabbitmq-cli-consumer
+    rm -rf rabbitmq-cli-consumer
+    cd $CWD
+done
+
 rm -rf $DIR
-
-
