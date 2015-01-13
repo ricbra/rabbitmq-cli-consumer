@@ -8,6 +8,7 @@ import (
 	"github.com/ricbra/rabbitmq-cli-consumer/config"
 	"github.com/streadway/amqp"
 	"log"
+	"net/url"
 )
 
 type Consumer struct {
@@ -57,8 +58,8 @@ func (c *Consumer) Consume() {
 func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogger *log.Logger) (*Consumer, error) {
 	uri := fmt.Sprintf(
 		"amqp://%s:%s@%s:%s%s",
-		cfg.RabbitMq.Username,
-		cfg.RabbitMq.Password,
+		url.QueryEscape(cfg.RabbitMq.Username),
+		url.QueryEscape(cfg.RabbitMq.Password),
 		cfg.RabbitMq.Host,
 		cfg.RabbitMq.Port,
 		cfg.RabbitMq.Vhost,
