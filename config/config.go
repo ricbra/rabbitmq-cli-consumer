@@ -7,12 +7,12 @@ import (
 
 type Config struct {
 	RabbitMq struct {
-		Host     string
-		Username string
-		Password string
-		Port     string
-		Vhost    string
-		Queue    string
+		Host        string
+		Username    string
+		Password    string
+		Port        string
+		Vhost       string
+		Queue       string
 		Compression bool
 	}
 	Logs struct {

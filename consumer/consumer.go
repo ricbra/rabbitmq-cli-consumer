@@ -1,6 +1,8 @@
 package consumer
 
 import (
+	"bytes"
+	"compress/zlib"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -9,19 +11,17 @@ import (
 	"github.com/streadway/amqp"
 	"log"
 	"net/url"
-	"compress/zlib"
-	"bytes"
 )
 
 type Consumer struct {
-	Channel    *amqp.Channel
-	Connection *amqp.Connection
-	Queue      string
-	Factory    *command.CommandFactory
-	ErrLogger  *log.Logger
-	InfLogger  *log.Logger
-	Executer   *command.CommandExecuter
-	Compression	bool
+	Channel     *amqp.Channel
+	Connection  *amqp.Connection
+	Queue       string
+	Factory     *command.CommandFactory
+	ErrLogger   *log.Logger
+	InfLogger   *log.Logger
+	Executer    *command.CommandExecuter
+	Compression bool
 }
 
 func (c *Consumer) Consume() {
@@ -98,13 +98,13 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 	}
 
 	return &Consumer{
-		Channel:    ch,
-		Connection: conn,
-		Queue:      cfg.RabbitMq.Queue,
-		Factory:    factory,
-		ErrLogger:  errLogger,
-		InfLogger:  infLogger,
-		Executer:   command.New(errLogger, infLogger),
-		Compression:	cfg.RabbitMq.Compression,
+		Channel:     ch,
+		Connection:  conn,
+		Queue:       cfg.RabbitMq.Queue,
+		Factory:     factory,
+		ErrLogger:   errLogger,
+		InfLogger:   infLogger,
+		Executer:    command.New(errLogger, infLogger),
+		Compression: cfg.RabbitMq.Compression,
 	}, nil
 }
