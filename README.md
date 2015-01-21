@@ -105,6 +105,7 @@ password = secret
 vhost=/your-vhost
 port=5672
 queue=name-of-queue
+compression=Off
 
 [logs]
 error = /location/to/error.log
@@ -183,6 +184,60 @@ class TestCommand extends ContainerAwareCommand
         exit(0);
     }
 }
+```
+
+## Compression
+
+Depending on what you're passing around on the queue, it may be wise to enable compression support. If you don't you may
+encouter the infamous "Argument list too long" error.
+
+When compression is enabled, the message gets compressed with zlib maximum compression before it's base64 encoded. We
+have to pay a performance penalty for this. If you are serializing large php objects I suggest to turn it on. Better
+safe then sorry.
+
+In your config:
+
+```ini
+[rabbitmq]
+host = localhost
+username = username-of-rabbitmq-user
+password = secret
+vhost=/your-vhost
+port=5672
+queue=name-of-queue
+compression=On
+
+[logs]
+error = /location/to/error.log
+info = /location/to/info.log
+```
+
+And in your php app:
+
+```php
+#!/usr/bin/env php
+<?php
+// This contains first argument
+$message = $argv[1];
+
+// Decode to get compressed value
+$original = base64_decode($message);
+
+// Uncompresss
+if (! $original = gzuncompress($original)) {
+    // Probably wanna throw some exception here
+    exit(1);
+}
+
+// Start processing
+if (do_heavy_lifting($original)) {
+    // All well, then return 0
+    exit(0);
+}
+
+// Let rabbitmq-cli-consumer know someting went wrong, message will be requeued.
+exit(1);
+
 ```
 
 # Developing

@@ -13,6 +13,7 @@ type Config struct {
 		Port     string
 		Vhost    string
 		Queue    string
+		Compression bool
 	}
 	Logs struct {
 		Error string

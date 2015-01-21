@@ -9,6 +9,8 @@ import (
 	"github.com/streadway/amqp"
 	"log"
 	"net/url"
+	"compress/zlib"
+	"bytes"
 )
 
 type Consumer struct {
@@ -19,6 +21,7 @@ type Consumer struct {
 	ErrLogger  *log.Logger
 	InfLogger  *log.Logger
 	Executer   *command.CommandExecuter
+	Compression	bool
 }
 
 func (c *Consumer) Consume() {
@@ -42,8 +45,22 @@ func (c *Consumer) Consume() {
 
 	go func() {
 		for d := range msgs {
-			input := base64.StdEncoding.EncodeToString(d.Body)
-			cmd := c.Factory.Create(input)
+			input := d.Body
+			if c.Compression {
+				var b bytes.Buffer
+				w, err := zlib.NewWriterLevel(&b, zlib.BestCompression)
+				if err != nil {
+					c.ErrLogger.Println("Could not create zlib handler")
+					d.Nack(true, true)
+				}
+				c.InfLogger.Println("Compressed message")
+				w.Write(input)
+				w.Close()
+
+				input = b.Bytes()
+			}
+
+			cmd := c.Factory.Create(base64.StdEncoding.EncodeToString(input))
 			if c.Executer.Execute(cmd) {
 				d.Ack(true)
 			} else {
@@ -88,5 +105,6 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 		ErrLogger:  errLogger,
 		InfLogger:  infLogger,
 		Executer:   command.New(errLogger, infLogger),
+		Compression:	cfg.RabbitMq.Compression,
 	}, nil
 }
