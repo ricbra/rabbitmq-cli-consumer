@@ -120,7 +120,6 @@ Run without <code>-V</code> to get rid of the output:
 
     $ rabbitmq-cli-consumer -e "/path/to/your/app argument --flag" -c /path/to/your/configuration.conf
 
-
 ### Prefetch count
 
 It's possible to configure the prefetch count and if you want set it as global. Add the following section to your
@@ -130,6 +129,18 @@ configuration to confol these values:
 [prefetch]
 count=3
 global=Off
+
+### Configuring the exchange
+
+It's also possible to configure the exchange and its options. When left out in the configuration file, the default
+exchange will be used. To configure the exchange add the following to your configuration file:
+
+```ini
+[exchange]
+name=mail
+autodelete=Off
+type=direct
+durable=On
 ```
 
 ## The executable

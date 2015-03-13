@@ -101,6 +101,27 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 		return nil, errors.New(fmt.Sprintf("Failed to declare queue: %s", err.Error()))
 	}
 
+	// Check for missing exchange settings to preserve BC
+	if "" == cfg.Exchange.Name && "" == cfg.Exchange.Type && ! cfg.Exchange.Durable && ! cfg.Exchange.Autodelete {
+		cfg.Exchange.Type = "direct"
+	}
+
+	// Empty Exchange name means default, no need to declare
+	if "" != cfg.Exchange.Name {
+		err = ch.ExchangeDeclare(cfg.Exchange.Name, cfg.Exchange.Type, cfg.Exchange.Durable, cfg.Exchange.Autodelete, false, false, amqp.Table{})
+
+		if nil != err {
+			return nil, errors.New(fmt.Sprintf("Failed to declare exchange: %s", err.Error()))
+		}
+
+		// Bind queue
+		err = ch.QueueBind(cfg.RabbitMq.Queue, "", cfg.Exchange.Name, false, nil);
+
+		if nil != err {
+			return nil, errors.New(fmt.Sprintf("Failed to bind queue to exchange: %s", err.Error()))
+		}
+	}
+
 	return &Consumer{
 		Channel:     ch,
 		Connection:  conn,
