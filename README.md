@@ -120,6 +120,18 @@ Run without <code>-V</code> to get rid of the output:
 
     $ rabbitmq-cli-consumer -e "/path/to/your/app argument --flag" -c /path/to/your/configuration.conf
 
+
+### Prefetch count
+
+It's possible to configure the prefetch count and if you want set it as global. Add the following section to your
+configuration to confol these values:
+
+```ini
+[prefetch]
+count=3
+global=Off
+```
+
 ## The executable
 
 Your executable receives the message as the last argument. So consider the following:
