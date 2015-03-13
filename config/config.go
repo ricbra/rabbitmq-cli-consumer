@@ -15,6 +15,10 @@ type Config struct {
 		Queue       string
 		Compression bool
 	}
+	Prefetch struct {
+		Count	int
+		Global	bool
+	}
 	Logs struct {
 		Error string
 		Info  string

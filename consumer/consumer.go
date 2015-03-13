@@ -25,12 +25,6 @@ type Consumer struct {
 }
 
 func (c *Consumer) Consume() {
-	c.InfLogger.Println("Setting QoS... ")
-	if err := c.Channel.Qos(3, 0, false); err != nil {
-		c.ErrLogger.Fatalf("Failed to set QoS: %s", err)
-	}
-	c.InfLogger.Println("Succeeded setting QoS.")
-
 	c.InfLogger.Println("Registering consumer... ")
 	msgs, err := c.Channel.Consume(c.Queue, "", false, false, false, false, nil)
 	if err != nil {
@@ -90,6 +84,16 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 	if nil != err {
 		return nil, errors.New(fmt.Sprintf("Failed to open a channel: %s", err.Error()))
 	}
+
+	infLogger.Println("Setting QoS... ")
+	// Attempt to preserve BC here
+	if cfg.Prefetch.Count == 0 {
+			cfg.Prefetch.Count = 3
+	}
+	if err := ch.Qos(cfg.Prefetch.Count, 0, cfg.Prefetch.Global); err != nil {
+		return nil, errors.New(fmt.Sprintf("Failed to set QoS: %s", err.Error()))
+	}
+	infLogger.Println("Succeeded setting QoS.")
 
 	_, err = ch.QueueDeclare(cfg.RabbitMq.Queue, true, false, false, false, nil)
 
