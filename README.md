@@ -129,6 +129,7 @@ configuration to confol these values:
 [prefetch]
 count=3
 global=Off
+```
 
 ### Configuring the exchange
 
