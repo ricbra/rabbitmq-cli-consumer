@@ -75,26 +75,32 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 		cfg.RabbitMq.Port,
 		cfg.RabbitMq.Vhost,
 	)
+
+	infLogger.Println("Connecting RabbitMQ...")
 	conn, err := amqp.Dial(uri)
 	if nil != err {
 		return nil, errors.New(fmt.Sprintf("Failed connecting RabbitMQ: %s", err.Error()))
 	}
+	infLogger.Println("Connected.")
 
+	infLogger.Println("Opening channel...")
 	ch, err := conn.Channel()
 	if nil != err {
 		return nil, errors.New(fmt.Sprintf("Failed to open a channel: %s", err.Error()))
 	}
+	infLogger.Println("Done.")
 
 	infLogger.Println("Setting QoS... ")
 	// Attempt to preserve BC here
 	if cfg.Prefetch.Count == 0 {
-			cfg.Prefetch.Count = 3
+		cfg.Prefetch.Count = 3
 	}
 	if err := ch.Qos(cfg.Prefetch.Count, 0, cfg.Prefetch.Global); err != nil {
 		return nil, errors.New(fmt.Sprintf("Failed to set QoS: %s", err.Error()))
 	}
 	infLogger.Println("Succeeded setting QoS.")
 
+	infLogger.Printf("Declaring queue \"%s\"...", cfg.RabbitMq.Queue)
 	_, err = ch.QueueDeclare(cfg.RabbitMq.Queue, true, false, false, false, nil)
 
 	if nil != err {
@@ -102,12 +108,13 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 	}
 
 	// Check for missing exchange settings to preserve BC
-	if "" == cfg.Exchange.Name && "" == cfg.Exchange.Type && ! cfg.Exchange.Durable && ! cfg.Exchange.Autodelete {
+	if "" == cfg.Exchange.Name && "" == cfg.Exchange.Type && !cfg.Exchange.Durable && !cfg.Exchange.Autodelete {
 		cfg.Exchange.Type = "direct"
 	}
 
 	// Empty Exchange name means default, no need to declare
 	if "" != cfg.Exchange.Name {
+		infLogger.Printf("Declaring exchange \"%s\"...", cfg.Exchange.Name)
 		err = ch.ExchangeDeclare(cfg.Exchange.Name, cfg.Exchange.Type, cfg.Exchange.Durable, cfg.Exchange.Autodelete, false, false, amqp.Table{})
 
 		if nil != err {
@@ -115,7 +122,8 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 		}
 
 		// Bind queue
-		err = ch.QueueBind(cfg.RabbitMq.Queue, "", cfg.Exchange.Name, false, nil);
+		infLogger.Printf("Binding queue \"%s\" to exchange \"%s\"...", cfg.RabbitMq.Queue, cfg.Exchange.Name)
+		err = ch.QueueBind(cfg.RabbitMq.Queue, "", cfg.Exchange.Name, false, nil)
 
 		if nil != err {
 			return nil, errors.New(fmt.Sprintf("Failed to bind queue to exchange: %s", err.Error()))
