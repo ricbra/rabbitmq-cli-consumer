@@ -141,9 +141,9 @@ build_package () {
   export GOPATH=~/gocode
   go get github.com/ricbra/rabbitmq-cli-consumer
   go build github.com/ricbra/rabbitmq-cli-consumer
-  cp $GOPATH/src/github.com/ricbra/rabbitmq-cli-consumer/rabbitmq-cli-consumer /tmp/deb/usr/bin/$service_name
+  mv rabbitmq-cli-consumer /tmp/deb/usr/bin/$service_name
   VERSION=`/tmp/deb/usr/bin/$service_name --version|awk '{print $3}'`
-  echo "fpm -s dir -t deb -C /tmp/deb --force --name $service_name --version $VERSION --description \"Consumes RabbitMQ messages into cli program\" --config-files etc/$service_name.conf"
+  fpm -s dir -t deb -C /tmp/deb --force --name $service_name --version $VERSION --description "Consumes RabbitMQ messages into cli program" --config-files etc/$service_name.conf
 }
 
 clean_deb_dirs () {
