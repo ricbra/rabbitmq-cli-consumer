@@ -36,6 +36,10 @@ Update and install:
 ## Create .deb package for service install
 
     sudo apt-get install golang gccgo-go ruby -y
+    # Ubuntu
+    sudo apt-get install gccgo-go -y
+    # Debian
+    sudo apt-get install gccgo -y
     sudo gem install fpm
     ./build_service_deb.sh
 
