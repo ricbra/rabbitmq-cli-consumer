@@ -33,6 +33,16 @@ Update and install:
     $ sudo apt-get update
     $ sudo apt-get install rabbitmq-cli-consumer
 
+## Create .deb package for service install
+
+    sudo apt-get install golang gccgo-go ruby -y
+    # Ubuntu
+    sudo apt-get install gccgo-go -y
+    # Debian
+    sudo apt-get install gccgo -y
+    sudo gem install fpm
+    ./build_service_deb.sh
+
 ## Binary
 
 Binaries can be found at: https://github.com/ricbra/rabbitmq-cli-consumer/releases
