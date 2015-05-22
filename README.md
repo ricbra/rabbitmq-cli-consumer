@@ -278,4 +278,21 @@ exit(1);
 
 Missing anything? Found a bug? I love to see your PR.
 
+## Setup development environment
 
+It can be quite difficult to get an development environment up & running. I'll hope to
+expand the instructions a bit in the future.
+
+### RabbitMQ
+
+Start by installing docker.
+
+Then:
+
+    $  docker run -d -P -e RABBITMQ_NODENAME=rabbitmq-cli-consumer --name rabbitmq-cli-consumer rabbitmq:3-management
+    
+To see which ports are available:
+   
+   $ docker port rabbitmq-cli-consumer
+     
+You can login with guest / guest.    
