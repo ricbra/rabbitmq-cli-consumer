@@ -204,7 +204,7 @@ class TestCommand extends ContainerAwareCommand
     {
         $this
             ->addArgument('event', InputArgument::REQUIRED)
-            ->setName('test:event')
+            ->setName('event:processing')
         ;
 
     }
