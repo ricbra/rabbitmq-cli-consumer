@@ -297,7 +297,7 @@ Then:
     
 To see which ports are available:
    
-   $ docker port rabbitmq-cli-consumer
+    $ docker port rabbitmq-cli-consumer
      
 You can login with <code>guest</code> / <code>guest</code>.
 If you want stop the container:
