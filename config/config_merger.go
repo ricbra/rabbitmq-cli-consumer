@@ -13,13 +13,13 @@ type Merger interface {
 type ConfigMerger struct {
 }
 
-func (m ConfigMerger) Merge(configs []Config) {
+func (m ConfigMerger) Merge(configs []Config) (Config, error) {
 	dest := Config{}
 	for _, config := range configs {
-		if err := mergo.Merge(&dest, config); err != nil {
-			fmt.Println(err)
+		if err := mergo.MergeWithOverwrite(&dest, config); err != nil {
+			return dest, fmt.Errorf("Could not merge config: %s", err.Error())
 		}
-		fmt.Println(dest)
-
 	}
+
+	return dest, nil
 }
