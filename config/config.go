@@ -1,51 +1,52 @@
 package config
 
 import (
-	"code.google.com/p/gcfg"
-	"path/filepath"
+	"log"
+	"strings"
+
+	"gopkg.in/validator.v2"
 )
 
 type Config struct {
 	RabbitMq struct {
-		Host        string
-		Username    string
-		Password    string
-		Port        string
-		Vhost       string
-		Queue       string
+		Host        string `validate:"nonzero"`
+		Username    string `validate:"nonzero"`
+		Password    string `validate:"nonzero"`
+		Port        string `validate:"nonzero"`
+		Vhost       string `validate:"nonzero"`
+		Queue       string `validate:"nonzero"`
 		Compression bool
 	}
 	Prefetch struct {
-		Count     int
-		Global    bool
+		Count  int `validate:"nonzero"`
+		Global bool
 	}
 	Exchange struct {
-		Name		string
-		Autodelete	bool
-		Type		string
-		Durable		bool
+		Name       string `validate:"nonzero"`
+		Autodelete bool
+		Type       string `validate:"nonzero"`
+		Durable    bool
 	}
 	Logs struct {
-		Error string
-		Info  string
+		Error string `validate:"nonzero"`
+		Info  string `validate:"nonzero"`
 	}
 }
 
-func LoadAndParse(location string) (*Config, error) {
-	if !filepath.IsAbs(location) {
-		location, err := filepath.Abs(location)
+func Validate(config Config, logger *log.Logger) bool {
+	if err := validator.Validate(config); err != nil {
+		for f, e := range err.(validator.ErrorMap) {
+			split := strings.Split(strings.ToLower(f), ".")
+			msg := e.Error()
+			switch msg {
+			case "zero value":
+				msg = "This option is required"
+			}
 
-		if err != nil {
-			return nil, err
+			logger.Printf("The option \"%s\" under section \"%s\" is invalid: %s\n", split[1], split[0], msg)
 		}
-
-		location = location
+		return false
 	}
 
-	cfg := Config{}
-	if err := gcfg.ReadFileInto(&cfg, location); err != nil {
-		return nil, err
-	}
-
-	return &cfg, nil
+	return true
 }

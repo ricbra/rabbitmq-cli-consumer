@@ -8,19 +8,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFindsFullPathFiles(t *testing.T) {
+func TestFindsDefauktFullpathConfig(t *testing.T) {
 	fs := &afero.MemMapFs{}
-	fs.Create("/etc/rabbitmq-cli-consmer/rabbitmq-cli-consumer.conf")
+	fs.Create("/etc/rabbitmq-cli-consumer/rabbitmq-cli-consumer.conf")
 
 	u := NewLocator([]string{
-		"/etc/rabbitmq-cli-consmer/rabbitmq-cli-consumer.conf",
 		"/home/test/my-config.conf",
 	}, fs, nil)
 
+	_, paths := u.Locate()
 	assert.Equal(
 		t,
-		[]string{"/etc/rabbitmq-cli-consmer/rabbitmq-cli-consumer.conf"},
-		u.Locate(),
+		[]string{"/etc/rabbitmq-cli-consumer/rabbitmq-cli-consumer.conf"},
+		paths,
 	)
 }
 
@@ -30,14 +30,14 @@ func TestFindsConfigInHomedir(t *testing.T) {
 	user := createUser()
 
 	u := NewLocator([]string{
-		"/etc/rabbitmq-cli-consmer/rabbitmq-cli-consumer.conf",
 		"/home/test/my-config.conf",
 	}, fs, user)
 
+	_, paths := u.Locate()
 	assert.Equal(
 		t,
 		[]string{"/home/fakeuser/.rabbitmq-cli-consumer.conf"},
-		u.Locate(),
+		paths,
 	)
 }
 
