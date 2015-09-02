@@ -4,11 +4,15 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/user"
+
+	"code.google.com/p/gcfg"
 
 	"github.com/codegangsta/cli"
 	"github.com/ricbra/rabbitmq-cli-consumer/command"
 	"github.com/ricbra/rabbitmq-cli-consumer/config"
 	"github.com/ricbra/rabbitmq-cli-consumer/consumer"
+	"github.com/spf13/afero"
 )
 
 func main() {
@@ -33,19 +37,41 @@ func main() {
 		},
 	}
 	app.Action = func(c *cli.Context) {
-		if c.String("configuration") == "" && c.String("executable") == "" {
+		if c.String("executable") == "" {
 			cli.ShowAppHelp(c)
 			os.Exit(1)
 		}
 
 		verbose := c.Bool("verbose")
+		logger := log.New(os.Stderr, "", 0)
 
-		logger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
-		cfg, err := config.LoadAndParse(c.String("configuration"))
-
+		// Config finding and parsing
+		// Perhaps refactor into something more elegant
+		user, _ := user.Current()
+		locator := config.NewLocator([]string{c.String("configuration")}, &afero.OsFs{}, user)
+		configs := []config.Config{}
+		err, locations := locator.Locate()
 		if err != nil {
-			logger.Fatalf("Failed parsing configuration: %s\n", err)
+			logger.Fatalf("Failed locating configuration: %s\n", err)
 		}
+
+		for _, path := range locations {
+			logger.Printf("Found config: %s", path)
+			cfg := config.Config{}
+			if err := gcfg.ReadFileInto(&cfg, path); err == nil {
+				configs = append(configs, cfg)
+			} else {
+				logger.Printf("Could not parse config: %s", err)
+			}
+		}
+		merger := config.ConfigMerger{}
+		cfg, _ := merger.Merge(configs)
+		if !config.Validate(cfg, logger) {
+			logger.Fatalf("Please fix configuration issues.")
+		}
+
+		// fmt.Println(config)
+		// os.Exit(0)
 
 		errLogger, err := createLogger(cfg.Logs.Error, verbose, os.Stderr)
 		if err != nil {
@@ -59,7 +85,7 @@ func main() {
 
 		factory := command.Factory(c.String("executable"))
 
-		client, err := consumer.New(cfg, factory, errLogger, infLogger)
+		client, err := consumer.New(&cfg, factory, errLogger, infLogger)
 		if err != nil {
 			errLogger.Fatalf("Failed creating consumer: %s", err)
 		}
