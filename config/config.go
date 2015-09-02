@@ -4,9 +4,12 @@ import (
 	"log"
 	"strings"
 
+	"code.google.com/p/gcfg"
+
 	"gopkg.in/validator.v2"
 )
 
+// Config contains all config values
 type Config struct {
 	RabbitMq struct {
 		Host        string `validate:"nonzero"`
@@ -33,6 +36,7 @@ type Config struct {
 	}
 }
 
+// Validate validtes Config and prints errors.
 func Validate(config Config, logger *log.Logger) bool {
 	if err := validator.Validate(config); err != nil {
 		for f, e := range err.(validator.ErrorMap) {
@@ -49,4 +53,26 @@ func Validate(config Config, logger *log.Logger) bool {
 	}
 
 	return true
+}
+
+// Default returns Config with default defined
+func Default() Config {
+	return CreateFromString(
+		`[prefetch]
+    count=3
+    global=Off
+
+    [exchange]
+    autodelete=Off
+    type=direct
+    durable=On
+    `)
+}
+
+// CreateFromString creates Config from string
+func CreateFromString(config string) Config {
+	cfg := Config{}
+	gcfg.ReadStringInto(&cfg, config)
+
+	return cfg
 }
