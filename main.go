@@ -32,8 +32,8 @@ func main() {
 			Usage: "Location of configuration file",
 		},
 		cli.BoolFlag{
-			Name:  "verbose, V",
-			Usage: "Enable verbose mode (logs to stdout and stderr)",
+			Name:  "quiet, Q",
+			Usage: "Enable quite mode (disables loggging to stdout and stderr)",
 		},
 	}
 	app.Action = func(c *cli.Context) {
@@ -42,7 +42,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		verbose := c.Bool("verbose")
+		verbose := !c.Bool("quiet")
 		logger := log.New(os.Stderr, "", 0)
 
 		// Config finding and parsing
