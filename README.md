@@ -1,6 +1,8 @@
 RabbitMQ cli consumer
 ---------------------
 
+[![Build Status](https://travis-ci.org/ricbra/rabbitmq-cli-consumer.svg)](https://travis-ci.org/ricbra/rabbitmq-cli-consumer)
+
 If you are a fellow PHP developer just like me you're probably aware of the following fact:
 PHP really SUCKS in long running tasks.
 
@@ -294,18 +296,16 @@ Start by installing docker.
 Then:
 
     $ docker run -d -P -e RABBITMQ_NODENAME=rabbitmq-cli-consumer --name rabbitmq-cli-consumer rabbitmq:3-management
-    
+
 To see which ports are available:
-   
+
     $ docker port rabbitmq-cli-consumer
-     
+
 You can login with <code>guest</code> / <code>guest</code>.
 If you want stop the container:
 
     $ docker stop rabbitmq-cli-consumer
-    
-And to restart the container:
-    
-    # docker start rabbitmq-cli-consumer
-    
 
+And to restart the container:
+
+    # docker start rabbitmq-cli-consumer
