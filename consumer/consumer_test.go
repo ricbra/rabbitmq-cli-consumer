@@ -12,10 +12,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestOpensChannel(t *testing.T) {
-	t.Log("test")
-}
-
 func TestParseAndEscapesParamsInURI(t *testing.T) {
 	uri := ParseURI("richard", "my@:secr%t", "localhost", "123", "/vhost")
 
