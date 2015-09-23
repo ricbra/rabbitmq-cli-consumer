@@ -96,6 +96,25 @@ func TestDeclareQueueSucceeds(t *testing.T) {
 	ch.AssertExpectations(t)
 }
 
+func TestBindQueueFails(t *testing.T) {
+	config := createConfig()
+	ch := new(TestChannel)
+
+	var b bytes.Buffer
+	errLogger := log.New(&b, "", 0)
+	infLogger := log.New(&b, "", 0)
+
+	ch.On("Qos", 3, 0, true).Return(nil).Once()
+	ch.On("QueueDeclare", "worker", true, false, false, false, amqp.Table{}).Return(amqp.Queue{}, nil).Once()
+	ch.On("ExchangeDeclare", "worker", "test", true, false, false, false, amqp.Table{}).Return(nil).Once()
+	ch.On("QueueBind", "worker", "", "worker", false, amqp.Table{}).Return(errors.New("error")).Once()
+
+	err := Initialize(&config, ch, errLogger, infLogger)
+
+	ch.AssertExpectations(t)
+	assert.NotNil(t, err)
+}
+
 type TestChannel struct {
 	mock.Mock
 }
