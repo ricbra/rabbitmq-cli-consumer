@@ -107,9 +107,6 @@ func (t *TestChannel) ExchangeDeclare(name, kind string, durable, autoDelete, in
 }
 
 func (t *TestChannel) QueueDeclare(name string, durable, autoDelete, exclusive, noWait bool, args amqp.Table) (amqp.Queue, error) {
-	// fmt.Println("TTEESSTT")
-	// fmt.Printf("%v", args)
-	// os.Exit(1)
 	argsT := t.Called(name, durable, autoDelete, exclusive, noWait, args)
 
 	return argsT.Get(0).(amqp.Queue), argsT.Error(1)
