@@ -109,10 +109,13 @@ func Initialize(cfg *config.Config, ch Channel, errLogger, infLogger *log.Logger
 	if err := ch.Qos(cfg.Prefetch.Count, 0, cfg.Prefetch.Global); err != nil {
 		return fmt.Errorf("Failed to set QoS: %s", err.Error())
 	}
+
 	infLogger.Println("Succeeded setting QoS.")
 
 	infLogger.Printf("Declaring queue \"%s\"...", cfg.RabbitMq.Queue)
-	_, err := ch.QueueDeclare(cfg.RabbitMq.Queue, true, false, false, false, nil)
+
+	table := amqp.Table{}
+	_, err := ch.QueueDeclare(cfg.RabbitMq.Queue, true, false, false, false, table)
 
 	if nil != err {
 		return fmt.Errorf("Failed to declare queue: %s", err.Error())
