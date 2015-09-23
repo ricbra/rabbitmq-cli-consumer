@@ -41,7 +41,7 @@ func TestSetQosFails(t *testing.T) {
 	err := Initialize(&config, ch, errLogger, infLogger)
 
 	ch.AssertExpectations(t)
-	ch.AssertNotCalled(t, "ExchangeDeclare", "worker", "test", true, false, false, false, amqp.Table{})
+	ch.AssertNotCalled(t, "QueueDeclare", "worker", true, false, false, false, amqp.Table{})
 	assert.NotNil(t, err)
 }
 
@@ -59,6 +59,24 @@ func TestSetQosSucceeds(t *testing.T) {
 	Initialize(&config, ch, errLogger, infLogger)
 
 	ch.AssertExpectations(t)
+}
+
+func TestDeclareQueueFails(t *testing.T) {
+	config := createConfig()
+	ch := new(TestChannel)
+
+	var b bytes.Buffer
+	errLogger := log.New(&b, "", 0)
+	infLogger := log.New(&b, "", 0)
+
+	ch.On("Qos", 3, 0, true).Return(nil).Once()
+	ch.On("QueueDeclare", "worker", true, false, false, false, amqp.Table{}).Return(amqp.Queue{}, errors.New("error")).Once()
+
+	err := Initialize(&config, ch, errLogger, infLogger)
+
+	ch.AssertExpectations(t)
+	ch.AssertNotCalled(t, "ExchangeDeclare", "worker", "test", true, false, false, false, amqp.Table{})
+	assert.NotNil(t, err)
 }
 
 type TestChannel struct {
