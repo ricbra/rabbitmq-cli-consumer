@@ -21,7 +21,7 @@ type Consumer struct {
 	Factory     *command.CommandFactory
 	ErrLogger   *log.Logger
 	InfLogger   *log.Logger
-	Executer    *command.CommandExecuter
+	Executer    command.Executer
 	Compression bool
 }
 
@@ -38,34 +38,44 @@ func (c *Consumer) Consume() {
 	defer c.Channel.Close()
 
 	forever := make(chan bool)
-
 	go func() {
 		for d := range msgs {
-			input := d.Body
-			if c.Compression {
-				var b bytes.Buffer
-				w, err := zlib.NewWriterLevel(&b, zlib.BestCompression)
-				if err != nil {
-					c.ErrLogger.Println("Could not create zlib handler")
-					d.Nack(true, true)
-				}
-				c.InfLogger.Println("Compressed message")
-				w.Write(input)
-				w.Close()
-
-				input = b.Bytes()
+			delivery := RabbitMqDelivery{
+				delivery: d,
+				body:     d.Body,
 			}
-
-			cmd := c.Factory.Create(base64.StdEncoding.EncodeToString(input))
-			if c.Executer.Execute(cmd) {
-				d.Ack(true)
-			} else {
-				d.Nack(true, true)
-			}
+			c.ProcessMessage(delivery)
 		}
 	}()
 	c.InfLogger.Println("Waiting for messages...")
 	<-forever
+}
+
+// ProcessMessage content of one single message
+func (c *Consumer) ProcessMessage(msg Delivery) {
+	input := msg.Body()
+	if c.Compression {
+		var b bytes.Buffer
+		w, err := zlib.NewWriterLevel(&b, zlib.BestCompression)
+		if err != nil {
+			c.ErrLogger.Println("Could not create zlib handler")
+			return
+		}
+		c.InfLogger.Println("Decompressed message")
+		w.Write(input)
+		w.Close()
+
+		input = b.Bytes()
+	}
+	// fmt.Printf("%v", input)
+
+	cmd := c.Factory.Create(base64.StdEncoding.EncodeToString(input))
+
+	if c.Executer.Execute(cmd) {
+		msg.Ack(true)
+	} else {
+		msg.Nack(true, true)
+	}
 }
 
 // New returns a initialized consumer based on config
@@ -169,4 +179,28 @@ type Channel interface {
 	QueueDeclare(name string, durable, autoDelete, exclusive, noWait bool, args amqp.Table) (amqp.Queue, error)
 	Qos(prefetchCount, prefetchSize int, global bool) error
 	QueueBind(name, key, exchange string, noWait bool, args amqp.Table) error
+}
+
+// Delivery interface describes interface for messages
+type Delivery interface {
+	Ack(multiple bool) error
+	Nack(multiple, requeue bool) error
+	Body() []byte
+}
+
+type RabbitMqDelivery struct {
+	body     []byte
+	delivery amqp.Delivery
+}
+
+func (r RabbitMqDelivery) Ack(multiple bool) error {
+	return r.delivery.Ack(multiple)
+}
+
+func (r RabbitMqDelivery) Nack(multiple, requeue bool) error {
+	return r.delivery.Nack(multiple, requeue)
+}
+
+func (r RabbitMqDelivery) Body() []byte {
+	return r.body
 }

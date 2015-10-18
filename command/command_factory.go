@@ -1,8 +1,6 @@
 package command
 
-import (
-	"os/exec"
-)
+import "os/exec"
 
 type CommandFactory struct {
 	Cmd  string

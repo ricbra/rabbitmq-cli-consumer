@@ -2,10 +2,12 @@ package consumer
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"log"
 	"testing"
 
+	"github.com/ricbra/rabbitmq-cli-consumer/command"
 	"github.com/ricbra/rabbitmq-cli-consumer/config"
 	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"
@@ -128,6 +130,99 @@ func TestBindQueueSucceeds(t *testing.T) {
 
 	ch.AssertExpectations(t)
 	assert.Nil(t, err)
+}
+
+func TestProcessingMessageWithSuccess(t *testing.T) {
+	msg := new(TestDelivery)
+	executer := new(TestExecuter)
+	factory := &command.CommandFactory{
+		Cmd:  "test",
+		Args: []string{"aa"},
+	}
+	consumer := Consumer{
+		Executer:    executer,
+		Factory:     factory,
+		Compression: false,
+	}
+	body := []byte("the_body")
+	args := base64.StdEncoding.EncodeToString(body)
+	cmd := factory.Create(args)
+	executer.On("Execute", cmd).Return(true).Once()
+	msg.On("Body").Return(body).Once()
+	msg.On("Ack", true).Return(nil).Once()
+
+	consumer.ProcessMessage(msg)
+
+	executer.AssertExpectations(t)
+	msg.AssertExpectations(t)
+}
+
+func TestProcessingMessageWithFailure(t *testing.T) {
+	msg := new(TestDelivery)
+	executer := new(TestExecuter)
+	factory := &command.CommandFactory{
+		Cmd:  "test",
+		Args: []string{"aa"},
+	}
+	consumer := Consumer{
+		Executer:    executer,
+		Factory:     factory,
+		Compression: false,
+	}
+	body := []byte("the_body")
+	args := base64.StdEncoding.EncodeToString(body)
+	cmd := factory.Create(args)
+	executer.On("Execute", cmd).Return(false).Once()
+	msg.On("Body").Return(body).Once()
+	msg.On("Nack", true, true).Return(nil).Once()
+
+	consumer.ProcessMessage(msg)
+
+	executer.AssertExpectations(t)
+	msg.AssertExpectations(t)
+}
+
+type TestCommand struct {
+	mock.Mock
+}
+
+func (t *TestCommand) CombinedOutput() (out []byte, err error) {
+	argsT := t.Called()
+
+	return argsT.Get(0).([]byte), argsT.Error(1)
+}
+
+type TestExecuter struct {
+	mock.Mock
+}
+
+func (t *TestExecuter) Execute(cmd command.Command) bool {
+	argsT := t.Called(cmd)
+
+	return argsT.Get(0).(bool)
+}
+
+type TestDelivery struct {
+	mock.Mock
+	body []byte
+}
+
+func (t *TestDelivery) Ack(multiple bool) error {
+	argstT := t.Called(multiple)
+
+	return argstT.Error(0)
+}
+
+func (t *TestDelivery) Nack(multiple, requeue bool) error {
+	argsT := t.Called(multiple, requeue)
+
+	return argsT.Error(0)
+}
+
+func (t *TestDelivery) Body() []byte {
+	argsT := t.Called()
+
+	return argsT.Get(0).([]byte)
 }
 
 type TestChannel struct {

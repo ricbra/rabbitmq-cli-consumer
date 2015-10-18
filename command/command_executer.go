@@ -2,6 +2,10 @@ package command
 
 import "log"
 
+type Executer interface {
+	Execute(cmd Command) bool
+}
+
 type CommandExecuter struct {
 	errLogger *log.Logger
 	infLogger *log.Logger
