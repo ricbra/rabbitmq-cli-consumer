@@ -17,12 +17,16 @@ type Config struct {
 		Password    string `validate:"nonzero"`
 		Port        string `validate:"nonzero"`
 		Vhost       string `validate:"nonzero"`
-		Queue       string `validate:"nonzero"`
 		Compression bool
 	}
 	Prefetch struct {
 		Count  int `validate:"nonzero"`
 		Global bool
+	}
+	Queue struct {
+		Name       string `validate:"nonzero"`
+		Durable    bool
+		Autodelete bool
 	}
 	Exchange struct {
 		Name       string `validate:"nonzero"`

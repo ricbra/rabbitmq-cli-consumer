@@ -19,7 +19,6 @@ func TestFailsOnRequiredFields(t *testing.T) {
 	out := b.String()
 
 	assert.Equal(t, false, valid)
-	assert.Contains(t, out, "The option \"queue\" under section \"rabbitmq\" is invalid: This option is required")
 	assert.Contains(t, out, "The option \"port\" under section \"rabbitmq\" is invalid: This option is required")
 	assert.Contains(t, out, "The option \"username\" under section \"rabbitmq\" is invalid: This option is required")
 	assert.Contains(t, out, "The option \"password\" under section \"rabbitmq\" is invalid: This option is required")
@@ -30,6 +29,7 @@ func TestFailsOnRequiredFields(t *testing.T) {
 	assert.Contains(t, out, "The option \"type\" under section \"exchange\" is invalid: This option is required")
 	assert.Contains(t, out, "The option \"error\" under section \"logs\" is invalid: This option is required")
 	assert.Contains(t, out, "The option \"info\" under section \"logs\" is invalid: This option is required")
+	assert.Contains(t, out, "The option \"name\" under section \"queue\" is invalid: This option is required")
 }
 
 func TestPassOnValidConfig(t *testing.T) {
@@ -39,12 +39,14 @@ func TestPassOnValidConfig(t *testing.T) {
     username=test
     password=t3st
     vhost=test
-    queue=test
     port=123
 
     [prefetch]
     count=3
     global=On
+
+		[queue]
+		name=test
 
     [exchange]
     name=test
