@@ -27,6 +27,8 @@ type Config struct {
 		Name       string `validate:"nonzero"`
 		Durable    bool
 		Autodelete bool
+		Exclusive  bool
+		Nowait     bool
 	}
 	Exchange struct {
 		Name       string `validate:"nonzero"`

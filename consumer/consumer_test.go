@@ -259,12 +259,18 @@ func createConfig() config.Config {
   username=ricbra
   password=t3st
   vhost=staging
-  queue=worker
   port=123
 
   [prefetch]
   count=3
   global=On
+
+  [queue]
+  name=worker
+  durable=On
+  autodelete=Off
+  exclusive=Off
+  nowait=Off
 
   [exchange]
   name=worker

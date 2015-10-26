@@ -103,7 +103,7 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 	return &Consumer{
 		Channel:     ch,
 		Connection:  conn,
-		Queue:       cfg.RabbitMq.Queue,
+		Queue:       cfg.Queue.Name,
 		Factory:     factory,
 		ErrLogger:   errLogger,
 		InfLogger:   infLogger,
@@ -122,10 +122,10 @@ func Initialize(cfg *config.Config, ch Channel, errLogger, infLogger *log.Logger
 
 	infLogger.Println("Succeeded setting QoS.")
 
-	infLogger.Printf("Declaring queue \"%s\"...", cfg.RabbitMq.Queue)
+	infLogger.Printf("Declaring queue \"%s\"...", cfg.Queue.Name)
 
 	table := amqp.Table{}
-	_, err := ch.QueueDeclare(cfg.RabbitMq.Queue, true, false, false, false, table)
+	_, err := ch.QueueDeclare(cfg.Queue.Name, cfg.Queue.Durable, cfg.Queue.Autodelete, cfg.Queue.Exclusive, cfg.Queue.Nowait, table)
 
 	if nil != err {
 		return fmt.Errorf("Failed to declare queue: %s", err.Error())
@@ -141,8 +141,8 @@ func Initialize(cfg *config.Config, ch Channel, errLogger, infLogger *log.Logger
 		}
 
 		// Bind queue
-		infLogger.Printf("Binding queue \"%s\" to exchange \"%s\"...", cfg.RabbitMq.Queue, cfg.Exchange.Name)
-		err = ch.QueueBind(cfg.RabbitMq.Queue, "", cfg.Exchange.Name, false, amqp.Table{})
+		infLogger.Printf("Binding queue \"%s\" to exchange \"%s\"...", cfg.Queue.Name, cfg.Exchange.Name)
+		err = ch.QueueBind(cfg.Queue.Name, "", cfg.Exchange.Name, false, amqp.Table{})
 
 		if nil != err {
 			return fmt.Errorf("Failed to bind queue to exchange: %s", err.Error())
