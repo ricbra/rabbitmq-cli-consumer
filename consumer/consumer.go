@@ -15,7 +15,7 @@ import (
 
 // Consumer represents a consumer
 type Consumer struct {
-	Channel     *amqp.Channel
+	Channel     Channel
 	Connection  *amqp.Connection
 	Queue       string
 	Factory     *command.CommandFactory
@@ -67,15 +67,44 @@ func (c *Consumer) ProcessMessage(msg Delivery) {
 
 		input = b.Bytes()
 	}
-	// fmt.Printf("%v", input)
 
 	cmd := c.Factory.Create(base64.StdEncoding.EncodeToString(input))
+	out, err := c.Executer.Execute(cmd)
 
-	if c.Executer.Execute(cmd) {
-		msg.Ack(true)
-	} else {
+	if err != nil {
 		msg.Nack(true, true)
+		return
 	}
+
+	if msg.IsRpcMessage() {
+		c.InfLogger.Println("Message is RPC message, trying to send reply...")
+
+		if err := c.Reply(msg, out); err != nil {
+			c.InfLogger.Println("Sending RPC reply failed. Check error log.")
+			c.ErrLogger.Printf("Error occured during send RPC reply: %s", err)
+			msg.Nack(true, true)
+
+			return
+		}
+		c.InfLogger.Println("RPC reply send.")
+	}
+
+	// All went fine, ack message
+	msg.Ack(true)
+}
+
+func (c *Consumer) Reply(msg Delivery, out []byte) error {
+	return c.Channel.Publish(
+		"",
+		msg.ReplyTo(),
+		false,
+		false,
+		amqp.Publishing{
+			ContentType:   "text/plain",
+			CorrelationId: msg.CorrelationId(),
+			Body:          out,
+		},
+	)
 }
 
 // New returns a initialized consumer based on config
@@ -179,6 +208,9 @@ type Channel interface {
 	QueueDeclare(name string, durable, autoDelete, exclusive, noWait bool, args amqp.Table) (amqp.Queue, error)
 	Qos(prefetchCount, prefetchSize int, global bool) error
 	QueueBind(name, key, exchange string, noWait bool, args amqp.Table) error
+	Consume(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args amqp.Table) (<-chan amqp.Delivery, error)
+	Close() error
+	Publish(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error
 }
 
 // Delivery interface describes interface for messages
@@ -186,6 +218,9 @@ type Delivery interface {
 	Ack(multiple bool) error
 	Nack(multiple, requeue bool) error
 	Body() []byte
+	IsRpcMessage() bool
+	CorrelationId() string
+	ReplyTo() string
 }
 
 type RabbitMqDelivery struct {
@@ -203,4 +238,16 @@ func (r RabbitMqDelivery) Nack(multiple, requeue bool) error {
 
 func (r RabbitMqDelivery) Body() []byte {
 	return r.body
+}
+
+func (r RabbitMqDelivery) IsRpcMessage() bool {
+	return r.delivery.ReplyTo != "" && r.delivery.CorrelationId != ""
+}
+
+func (r RabbitMqDelivery) CorrelationId() string {
+	return r.delivery.CorrelationId
+}
+
+func (r RabbitMqDelivery) ReplyTo() string {
+	return r.delivery.ReplyTo
 }

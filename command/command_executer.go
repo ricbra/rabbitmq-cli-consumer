@@ -1,9 +1,12 @@
 package command
 
-import "log"
+import (
+	"fmt"
+	"log"
+)
 
 type Executer interface {
-	Execute(cmd Command) bool
+	Execute(cmd Command) (result []byte, err error)
 }
 
 type CommandExecuter struct {
@@ -13,6 +16,7 @@ type CommandExecuter struct {
 
 type Command interface {
 	CombinedOutput() (out []byte, err error)
+	Output() (out []byte, err error)
 }
 
 func New(errLogger, infLogger *log.Logger) *CommandExecuter {
@@ -22,19 +26,20 @@ func New(errLogger, infLogger *log.Logger) *CommandExecuter {
 	}
 }
 
-func (me CommandExecuter) Execute(cmd Command) bool {
+func (me CommandExecuter) Execute(cmd Command) (result []byte, err error) {
 	me.infLogger.Println("Processing message...")
 
-	out, err := cmd.CombinedOutput()
+	out, err := cmd.Output()
 
 	if err != nil {
 		me.infLogger.Println("Failed. Check error log for details.")
 		me.errLogger.Printf("Failed: %s\n", string(out[:]))
 		me.errLogger.Printf("Error: %s\n", err)
-		return false
+
+		return out, fmt.Errorf("Error occured during execution of command: %s", err)
 	}
 
 	me.infLogger.Println("Processed!")
 
-	return true
+	return out, nil
 }

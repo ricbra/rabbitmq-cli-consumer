@@ -15,7 +15,7 @@ func TestExecutesCommand(t *testing.T) {
 
 	cmd := new(TestCommand)
 
-	cmd.On("CombinedOutput").Return(make([]byte, 0), nil).Once()
+	cmd.On("Output").Return(make([]byte, 0), nil).Once()
 
 	executer := New(errLogger, infLogger)
 	executer.Execute(cmd)
@@ -29,6 +29,12 @@ type TestCommand struct {
 }
 
 func (t *TestCommand) CombinedOutput() (out []byte, err error) {
+	argsT := t.Called()
+
+	return argsT.Get(0).([]byte), argsT.Error(1)
+}
+
+func (t *TestCommand) Output() (out []byte, err error) {
 	argsT := t.Called()
 
 	return argsT.Get(0).([]byte), argsT.Error(1)
