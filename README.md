@@ -105,6 +105,59 @@ Run without arguments or with <code>--help</code> switch to show the helptext:
        --help, -h		show help
        --version, -v	print the version
 
+## Fanout
+
+Todo.
+
+## Remote Procedure Call
+
+No special configuration is required for enabling RPC mode. You should be aware
+that any output on STDOUT will be returned as reply to the requesting client. To
+demonstrate how RPC works, we'll implement [the example](https://www.rabbitmq.com/tutorials/tutorial-six-php.html) on the RabbitMQ site
+using rabbitmq-cli-consumer.
+
+We don't change the <code>rpc_client.php</code>, only the <code>rpc_server.php</code>:
+
+```php
+<?php
+
+function fib($n) {
+    if ($n == 0)
+        return 0;
+    if ($n == 1)
+        return 1;
+    return fib($n-1) + fib($n-2);
+}
+
+echo fib(base64_decode($argv[1]));
+// Return exit(1); if something goes wrong, msg will be requeued
+exit(0);
+```
+
+Configuration for the consumer:
+
+```ini
+[rabbitmq]
+...
+
+[prefetch]
+count=1
+global=Off
+
+[queue]
+name=rpc_queue
+durable=On
+autodelete=Off
+exclusive=Off
+nowait=Off
+
+[exchange]
+name=rpc_queue
+autodelete=Off
+type=direct
+durable=On
+```
+
 ## Configuration
 
 A configuration file is required. Example:
@@ -116,8 +169,10 @@ username = username-of-rabbitmq-user
 password = secret
 vhost=/your-vhost
 port=5672
-queue=name-of-queue
 compression=Off
+
+[queue]
+nane=your-queue-name
 
 [logs]
 error = /location/to/error.log
@@ -155,6 +210,21 @@ autodelete=Off
 type=direct
 durable=On
 ```
+
+### Configuring the queue
+
+All queue options are configurable. Example:
+
+```ini
+[queue]
+name=rpc_queue
+durable=On
+autodelete=Off
+exclusive=Off
+nowait=Off
+```
+
+
 
 ## The executable
 
