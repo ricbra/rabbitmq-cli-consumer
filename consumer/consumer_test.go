@@ -106,7 +106,7 @@ func TestBindQueueFails(t *testing.T) {
 	ch.On("Qos", 3, 0, true).Return(nil).Once()
 	ch.On("QueueDeclare", "worker", true, false, false, false, amqp.Table{}).Return(amqp.Queue{}, nil).Once()
 	ch.On("ExchangeDeclare", "worker", "test", true, false, false, false, amqp.Table{}).Return(nil).Once()
-	ch.On("QueueBind", "worker", "", "worker", false, amqp.Table{}).Return(errors.New("error")).Once()
+	ch.On("QueueBind", "worker", "foo", "worker", false, amqp.Table{}).Return(errors.New("error")).Once()
 
 	err := Initialize(&config, ch, errLogger, infLogger)
 
@@ -125,7 +125,7 @@ func TestBindQueueSucceeds(t *testing.T) {
 	ch.On("Qos", 3, 0, true).Return(nil).Once()
 	ch.On("QueueDeclare", "worker", true, false, false, false, amqp.Table{}).Return(amqp.Queue{}, nil).Once()
 	ch.On("ExchangeDeclare", "worker", "test", true, false, false, false, amqp.Table{}).Return(nil).Once()
-	ch.On("QueueBind", "worker", "", "worker", false, amqp.Table{}).Return(nil).Once()
+	ch.On("QueueBind", "worker", "foo", "worker", false, amqp.Table{}).Return(nil).Once()
 
 	err := Initialize(&config, ch, errLogger, infLogger)
 
@@ -350,6 +350,7 @@ func createConfig() config.Config {
   autodelete=Off
   exclusive=Off
   nowait=Off
+  key=foo
 
   [exchange]
   name=worker

@@ -171,7 +171,7 @@ func Initialize(cfg *config.Config, ch Channel, errLogger, infLogger *log.Logger
 
 		// Bind queue
 		infLogger.Printf("Binding queue \"%s\" to exchange \"%s\"...", cfg.Queue.Name, cfg.Exchange.Name)
-		err = ch.QueueBind(cfg.Queue.Name, "", cfg.Exchange.Name, false, amqp.Table{})
+		err = ch.QueueBind(cfg.Queue.Name, cfg.Queue.Key, cfg.Exchange.Name, false, amqp.Table{})
 
 		if nil != err {
 			return fmt.Errorf("Failed to bind queue to exchange: %s", err.Error())

@@ -29,6 +29,7 @@ type Config struct {
 		Autodelete bool
 		Exclusive  bool
 		Nowait     bool
+		Key        string
 	}
 	Exchange struct {
 		Name       string `validate:"nonzero"`
