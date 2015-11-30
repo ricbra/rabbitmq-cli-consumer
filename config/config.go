@@ -1,8 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"strings"
+
+	"github.com/codegangsta/cli"
 
 	"code.google.com/p/gcfg"
 
@@ -82,4 +85,55 @@ func CreateFromString(config string) Config {
 	gcfg.ReadStringInto(&cfg, config)
 
 	return cfg
+}
+
+// CreateFromCliContext creates config from options passed to cli
+func CreateFromCliContext(c *cli.Context) Config {
+	str := fmt.Sprintf(
+		`[rabbitmq]
+		host=%s
+		username=%s
+		password=%s
+		vhost=%s
+		port=%s
+		compression=%s
+
+		[prefetch]
+		count=%s
+		global=%s
+
+		[queue]
+		name=%s
+		durable=%s
+		autodelete=%s
+		exclusive=%s
+		nowait=%s
+		key=%s
+
+		[exchange]
+		name=%s
+		autodelete=%s
+		type=%s
+		durable=%s`,
+		c.String("host"),
+		c.String("username"),
+		c.String("password"),
+		c.String("vhost"),
+		c.String("port"),
+		c.String("compression"),
+		c.String("prefetch-count"),
+		c.String("prefetch-global"),
+		c.String("queue-name"),
+		c.String("queue-durable"),
+		c.String("queue-autodelete"),
+		c.String("queue-exclusive"),
+		c.String("queue-nowait"),
+		c.String("queue-key"),
+		c.String("exchange-name"),
+		c.String("exchange-autodelete"),
+		c.String("exchange-type"),
+		c.String("exchange-durable"),
+	)
+
+	return CreateFromString(str)
 }

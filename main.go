@@ -31,9 +31,81 @@ func main() {
 			Name:  "configuration, c",
 			Usage: "Location of configuration file",
 		},
-		cli.BoolFlag{
+		cli.StringFlag{
 			Name:  "quiet, Q",
 			Usage: "Enable quite mode (disables loggging to stdout and stderr)",
+		},
+		cli.StringFlag{
+			Name:  "host, H",
+			Usage: "IP or hostname of RabbitMQ server",
+		},
+		cli.StringFlag{
+			Name:  "username, u",
+			Usage: "RabbitMQ username",
+		},
+		cli.StringFlag{
+			Name:  "password, p",
+			Usage: "RabbitMQ password",
+		},
+		cli.StringFlag{
+			Name:  "vhost, V",
+			Usage: "RabbitMQ vhost",
+		},
+		cli.StringFlag{
+			Name:  "port, P",
+			Usage: "RabbitMQ port",
+		},
+		cli.StringFlag{
+			Name:  "compression, o",
+			Usage: "Enable compression of messages",
+		},
+		cli.StringFlag{
+			Name:  "prefetch-count, C",
+			Usage: "Prefetch count",
+		},
+		cli.StringFlag{
+			Name:  "prefetch-global, G",
+			Usage: "Set prefetch count as global",
+		},
+		cli.StringFlag{
+			Name:  "queue-name,q",
+			Usage: "Queue name",
+		},
+		cli.StringFlag{
+			Name:  "queue-durable,D",
+			Usage: "Mark queue as durable",
+		},
+		cli.StringFlag{
+			Name:  "queue-autodelete,a",
+			Usage: "Autodelete queue",
+		},
+		cli.StringFlag{
+			Name:  "queue-exlusive,E",
+			Usage: "Mark queue as exclusive",
+		},
+		cli.StringFlag{
+			Name:  "queue-nowait, T",
+			Usage: "Do not wait for the server to confirm the binding",
+		},
+		cli.StringFlag{
+			Name:  "queue-key, k",
+			Usage: "Routing key to bind the queue on",
+		},
+		cli.StringFlag{
+			Name:  "exchange-name, X",
+			Usage: "Exchange name",
+		},
+		cli.StringFlag{
+			Name:  "exchange-autodelete, t",
+			Usage: "Autodelete exchange",
+		},
+		cli.StringFlag{
+			Name:  "exchange-type, y",
+			Usage: "Exchange type (direct, fanout, topic or headers)",
+		},
+		cli.StringFlag{
+			Name:  "exchange-durable, j",
+			Usage: "Mark exchange as durable",
 		},
 	}
 	app.Action = func(c *cli.Context) {
@@ -64,14 +136,14 @@ func main() {
 				logger.Printf("Could not parse config: %s", err)
 			}
 		}
+
+		// Read config settings passed in as option to the command
+		configs = append(configs, config.CreateFromCliContext(c))
 		merger := config.ConfigMerger{}
 		cfg, _ := merger.Merge(configs)
 		if !config.Validate(cfg, logger) {
 			logger.Fatalf("Please fix configuration issues.")
 		}
-
-		// fmt.Println(config)
-		// os.Exit(0)
 
 		errLogger, err := createLogger(cfg.Logs.Error, verbose, os.Stderr)
 		if err != nil {
