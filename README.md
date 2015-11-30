@@ -158,7 +158,7 @@ type=direct
 durable=On
 ```
 
-## Configuration
+# Configuration
 
 A configuration file is required. Example:
 
@@ -187,10 +187,27 @@ Run without <code>-V</code> to get rid of the output:
 
     $ rabbitmq-cli-consumer -e "/path/to/your/app argument --flag" -c /path/to/your/configuration.conf
 
+## Configuration inheritance
+
+By default rabbitmq-cli-consumer looks for configuration files in the following
+order:
+
+1. /etc/rabbitmq-cli-consumer/rabbitmq-cli-consumer.conf
+2. ~/.rabbitmq-cli-consumer.conf
+3. location passed in via <code>-c</code> option
+
+## Override options on the command line:
+
+Every option in the configuration file can be overwritten by passing them on the
+cli. Use <code>On</code> and <code>Off</code> for <code>true</code> and <code>false</code>
+respectively. Example:
+
+    $ rabbitmq-cli-consumer -c /you/config.conf -e "/path/to/executble" --queue-key=custom-key
+
 ### Prefetch count
 
 It's possible to configure the prefetch count and if you want set it as global. Add the following section to your
-configuration to confol these values:
+configuration to control these values:
 
 ```ini
 [prefetch]
@@ -223,8 +240,6 @@ autodelete=Off
 exclusive=Off
 nowait=Off
 ```
-
-
 
 ## The executable
 
