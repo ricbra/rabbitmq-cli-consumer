@@ -230,7 +230,7 @@ durable=On
 
 ### Configuring the queue
 
-All queue options are configurable. Example:
+All queue options are configurable. Full example:
 
 ```ini
 [queue]
@@ -239,6 +239,30 @@ durable=On
 autodelete=Off
 exclusive=Off
 nowait=Off
+```
+
+If you want to define a TTL for your queue:
+
+```ini
+[queue]
+name=rpc_queue
+durable=On
+autodelete=Off
+exclusive=Off
+nowait=Off
+ttl=1200
+```
+
+When you want to configure the routing key:
+
+```ini
+[queue]
+name=rpc_queue
+durable=On
+autodelete=Off
+exclusive=Off
+nowait=Off
+key=your-routing-key
 ```
 
 ## The executable
