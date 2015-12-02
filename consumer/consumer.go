@@ -154,6 +154,9 @@ func Initialize(cfg *config.Config, ch Channel, errLogger, infLogger *log.Logger
 	infLogger.Printf("Declaring queue \"%s\"...", cfg.Queue.Name)
 
 	table := amqp.Table{}
+	if cfg.Queue.TTL > 0 {
+		table["x-message-ttl"] = cfg.Queue.TTL
+	}
 	_, err := ch.QueueDeclare(cfg.Queue.Name, cfg.Queue.Durable, cfg.Queue.Autodelete, cfg.Queue.Exclusive, cfg.Queue.Nowait, table)
 
 	if nil != err {

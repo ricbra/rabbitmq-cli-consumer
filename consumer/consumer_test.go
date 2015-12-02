@@ -95,6 +95,23 @@ func TestDeclareQueueSucceeds(t *testing.T) {
 	ch.AssertExpectations(t)
 }
 
+func TestDeclareQueueWithTTL(t *testing.T) {
+	config := createConfigWithTTL()
+	ch := new(TestChannel)
+
+	var b bytes.Buffer
+	errLogger := log.New(&b, "", 0)
+	infLogger := log.New(&b, "", 0)
+
+	ch.On("Qos", 3, 0, true).Return(nil).Once()
+	ch.On("QueueDeclare", "worker", true, false, false, false, amqp.Table{"x-message-ttl": 1200}).Return(amqp.Queue{}, nil).Once()
+	ch.On("ExchangeDeclare", "worker", "test", true, false, false, false, amqp.Table{}).Return(errors.New("error")).Once()
+
+	Initialize(&config, ch, errLogger, infLogger)
+
+	ch.AssertExpectations(t)
+}
+
 func TestBindQueueFails(t *testing.T) {
 	config := createConfig()
 	ch := new(TestChannel)
@@ -351,6 +368,39 @@ func createConfig() config.Config {
   exclusive=Off
   nowait=Off
   key=foo
+
+  [exchange]
+  name=worker
+  autodelete=Off
+  type=test
+  durable=On
+
+  [logs]
+  error=a
+  info=b
+  `)
+}
+
+func createConfigWithTTL() config.Config {
+	return config.CreateFromString(`[rabbitmq]
+  host=localhost
+  username=ricbra
+  password=t3st
+  vhost=staging
+  port=123
+
+  [prefetch]
+  count=3
+  global=On
+
+  [queue]
+  name=worker
+  durable=On
+  autodelete=Off
+  exclusive=Off
+  nowait=Off
+  key=foo
+	ttl=1200
 
   [exchange]
   name=worker

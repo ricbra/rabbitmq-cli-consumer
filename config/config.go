@@ -33,6 +33,7 @@ type Config struct {
 		Exclusive  bool
 		Nowait     bool
 		Key        string
+		TTL        int
 	}
 	Exchange struct {
 		Name       string `validate:"nonzero"`
