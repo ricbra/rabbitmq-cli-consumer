@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
+	"os/signal"
 	"os/user"
+	"syscall"
 
 	"code.google.com/p/gcfg"
 
@@ -14,6 +17,8 @@ import (
 	"github.com/ricbra/rabbitmq-cli-consumer/consumer"
 	"github.com/spf13/afero"
 )
+
+var files []*os.File
 
 func main() {
 	app := cli.NewApp()
@@ -162,6 +167,25 @@ func main() {
 			errLogger.Fatalf("Failed creating consumer: %s", err)
 		}
 
+		// Reopen logs on USR1
+		sigs := make(chan os.Signal)
+		signal.Notify(sigs, syscall.SIGUSR1)
+
+		go func() {
+			for _ = range sigs {
+				for _, file := range files {
+					filename := file.Name()
+					file.Close()
+					new, err := os.OpenFile(filename, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
+
+					if err != nil {
+						panic(fmt.Sprintf("Failed reopeing log file: %s", err))
+					}
+					file = new
+				}
+			}
+		}()
+
 		client.Consume()
 	}
 
@@ -174,6 +198,8 @@ func createLogger(filename string, verbose bool, out io.Writer) (*log.Logger, er
 	if err != nil {
 		return nil, err
 	}
+
+	files = append(files, file)
 
 	var writers = []io.Writer{
 		file,
