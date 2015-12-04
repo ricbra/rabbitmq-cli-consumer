@@ -385,6 +385,12 @@ exit(1);
 
 ```
 
+## Log rotation
+
+To close and reopen the logs send the USR1 signal:
+
+    $  kill -s USR1 pid_of_process
+
 # Developing
 
 Missing anything? Found a bug? I love to see your PR.
