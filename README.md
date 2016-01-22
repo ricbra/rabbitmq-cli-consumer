@@ -290,8 +290,7 @@ the following.
 {
   "properties": {
     "application_headers": {
-      "name": "value",
-      …
+      "name": "value"
     },
     "content_type": "",
     "content_encoding": "",
@@ -320,7 +319,7 @@ Change your script acording to the following example.
 $input = $argv[1];
 
 // Decode to get original value also decrompress acording to your configuration.
-$data = jsone_decode(base64_decode($input));
+$data = json_decode(base64_decode($input));
 
 // Start processing
 if (do_heavy_lifting($data->body, $data->properties)) {
@@ -362,7 +361,7 @@ class TestCommand extends ContainerAwareCommand
         $data = json_decode(base64_decode($input->getArgument('event')));
         $message = new AMQPMessage($data->body, $data->properties);
 
-        /** @var \PhpAmqpLib\Message\AMQPMessage $consumer */
+        /** @var \PhpAmqpLib\Message\AMQPMessage\ConsumerInterface $consumer */
         $consumer = $this->getContainer()->get('consumer');
 
         if (false == $consumer->execute($message)) {
