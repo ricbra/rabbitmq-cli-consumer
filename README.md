@@ -100,6 +100,7 @@ Run without arguments or with <code>--help</code> switch to show the helptext:
        --executable, -e 	Location of executable
        --configuration, -c 	Location of configuration file
        --verbose, -V	Enable verbose mode (logs to stdout and stderr)
+       --include, -i	Include metadata. Passes message as JSON data including headers, properties and message body.
        --help, -h		show help
        --version, -v	print the version
 
@@ -273,6 +274,105 @@ if (do_heavy_lifting($original)) {
 exit(1);
 
 ```
+
+## Including properties and message headers
+
+
+If you need to access message headers or properties, call the command with the
+`--include, -i` option set.
+
+    $ rabbitmq-cli-consumer -e "/home/vagrant/current/app/command.php" -c example.conf -i
+
+The script then will recieve an json encoded data structure which looks like
+the following.
+
+```json
+{
+  "properties": {
+    "application_headers": {
+      "name": "value",
+      …
+    },
+    "content_type": "",
+    "content_encoding": "",
+    "delivery_mode": 1,
+    "priority": 0,
+    "correlation_id": "",
+    "reply_to": "",
+    "expiration": "",
+    "message_id": "",
+    "timestamp": "0001-01-01T00:00:00Z",
+    "type": "",
+    "user_id": "",
+    "app_id": ""
+  },
+  "body": ""
+}
+
+```
+
+Change your script acording to the following example.
+
+```php
+#!/usr/bin/env php
+<?php
+// This contains first argument
+$input = $argv[1];
+
+// Decode to get original value also decrompress acording to your configuration.
+$data = jsone_decode(base64_decode($input));
+
+// Start processing
+if (do_heavy_lifting($data->body, $data->properties)) {
+    // All well, then return 0
+    exit(0);
+}
+
+// Let rabbitmq-cli-consumer know someting went wrong, message will be requeued.
+exit(1);
+```
+
+If you are using symfonies RabbitMQ bundle (`oldsound/rabbitmq-bundle`) you can
+wrap the consumer with the following symfony command.
+
+```php
+<?php
+
+namespace Vendor\EventBundle\Command;
+
+use PhpAmqpLib\Message\AMQPMessage;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+class TestCommand extends ContainerAwareCommand
+{
+    protected function configure()
+    {
+        $this
+            ->addArgument('event', InputArgument::REQUIRED)
+            ->setName('event:processing')
+        ;
+
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $data = json_decode(base64_decode($input->getArgument('event')));
+        $message = new AMQPMessage($data->body, $data->properties);
+
+        /** @var \PhpAmqpLib\Message\AMQPMessage $consumer */
+        $consumer = $this->getContainer()->get('consumer');
+
+        if (false == $consumer->execute($message)) {
+		exit(1);
+	}
+    }
+}
+```
+
+
 
 # Developing
 
