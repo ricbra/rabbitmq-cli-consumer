@@ -14,14 +14,16 @@ import (
 )
 
 type Consumer struct {
-	Channel     *amqp.Channel
-	Connection  *amqp.Connection
-	Queue       string
-	Factory     *command.CommandFactory
-	ErrLogger   *log.Logger
-	InfLogger   *log.Logger
-	Executer    *command.CommandExecuter
-	Compression bool
+	Channel         *amqp.Channel
+	Connection      *amqp.Connection
+	Queue           string
+	Factory         *command.CommandFactory
+	ErrLogger       *log.Logger
+	InfLogger       *log.Logger
+	Executer        *command.CommandExecuter
+	Compression     bool
+	IncludeMetadata bool
+}
 }
 
 func (c *Consumer) Consume() {
