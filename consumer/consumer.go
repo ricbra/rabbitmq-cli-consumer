@@ -77,6 +77,7 @@ func (c *Consumer) Consume() {
 						MessageId:       d.MessageId,
 						Timestamp:       d.Timestamp,
 						Type:            d.Type,
+						AppId:           d.AppId,
 						UserId:          d.UserId,
 					},
 
