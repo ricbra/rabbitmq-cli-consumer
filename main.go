@@ -30,6 +30,10 @@ func main() {
 			Name:  "verbose, V",
 			Usage: "Enable verbose mode (logs to stdout and stderr)",
 		},
+		cli.BoolFlag{
+			Name:  "include, i",
+			Usage: "Include metadata. Passes message as JSON data including headers, properties and message body.",
+		},
 	}
 	app.Action = func(c *cli.Context) {
 		if c.String("configuration") == "" && c.String("executable") == "" {
@@ -62,6 +66,7 @@ func main() {
 		if err != nil {
 			errLogger.Fatalf("Failed creating consumer: %s", err)
 		}
+		client.IncludeMetadata = c.Bool("include")
 
 		client.Consume()
 	}
