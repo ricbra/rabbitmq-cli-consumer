@@ -41,6 +41,7 @@ type Properties struct{
 	Type            string     `json:"type"`
 	UserId          string     `json:"user_id"`
 	AppId           string     `json:"app_id"`
+	Redelivered     bool       `json:"redelivered"`
 }
 
 func (c *Consumer) Consume() {
@@ -79,6 +80,7 @@ func (c *Consumer) Consume() {
 						Type:            d.Type,
 						AppId:           d.AppId,
 						UserId:          d.UserId,
+						Redelivered:     d.Redelivered,
 					},
 
 					Body:            string(d.Body),
