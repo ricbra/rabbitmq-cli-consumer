@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"encoding/json"
 	"time"
+	"os"
 )
 
 type Consumer struct {
@@ -44,6 +45,12 @@ type Properties struct{
 	Redelivered     bool       `json:"redelivered"`
 }
 
+func ConnectionCloseHandler(closeErr chan *amqp.Error, c *Consumer) {
+	err := <- closeErr
+	c.ErrLogger.Fatalf("Connection closed: %v", err)
+	os.Exit(10)
+}
+
 func (c *Consumer) Consume() {
 	c.InfLogger.Println("Registering consumer... ")
 	msgs, err := c.Channel.Consume(c.Queue, "", false, false, false, false, nil)
@@ -54,6 +61,10 @@ func (c *Consumer) Consume() {
 
 	defer c.Connection.Close()
 	defer c.Channel.Close()
+
+	closeErr := make(chan *amqp.Error)
+	closeErr = c.Connection.NotifyClose(closeErr)
+	go ConnectionCloseHandler(closeErr, c)
 
 	forever := make(chan bool)
 
