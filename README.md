@@ -283,7 +283,7 @@ If you need to access message headers or properties, call the command with the
 
     $ rabbitmq-cli-consumer -e "/home/vagrant/current/app/command.php" -c example.conf -i
 
-The script then will recieve an json encoded data structure which looks like
+The script then will receive a json encoded data structure which looks like
 the following.
 
 ```json
@@ -303,7 +303,9 @@ the following.
     "timestamp": "0001-01-01T00:00:00Z",
     "type": "",
     "user_id": "",
-    "app_id": ""
+    "app_id": "",
+    "redelivered": false,
+    "routing_key": ""
   },
   "body": ""
 }

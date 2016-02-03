@@ -43,6 +43,7 @@ type Properties struct{
 	UserId          string     `json:"user_id"`
 	AppId           string     `json:"app_id"`
 	Redelivered     bool       `json:"redelivered"`
+	RoutingKey      string     `json:"routing_key"`
 }
 
 func ConnectionCloseHandler(closeErr chan *amqp.Error, c *Consumer) {
@@ -92,6 +93,7 @@ func (c *Consumer) Consume() {
 						AppId:           d.AppId,
 						UserId:          d.UserId,
 						Redelivered:     d.Redelivered,
+						RoutingKey:      d.RoutingKey,
 					},
 
 					Body:            string(d.Body),
