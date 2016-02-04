@@ -34,6 +34,10 @@ func main() {
 			Name:  "include, i",
 			Usage: "Include metadata. Passes message as JSON data including headers, properties and message body.",
 		},
+		cli.BoolFlag{
+			Name:  "strict-exit-code",
+			Usage: "Strict exit code processing will rise a fatal error if exit code is different from allowed onces.",
+		},
 	}
 	app.Action = func(c *cli.Context) {
 		if c.String("configuration") == "" && c.String("executable") == "" {
@@ -67,6 +71,7 @@ func main() {
 			errLogger.Fatalf("Failed creating consumer: %s", err)
 		}
 		client.IncludeMetadata = c.Bool("include")
+		client.StrictExitCode = c.Bool("strict-exit-code")
 
 		client.Consume()
 	}
