@@ -42,7 +42,14 @@ type Properties struct{
 	Type            string     `json:"type"`
 	UserId          string     `json:"user_id"`
 	AppId           string     `json:"app_id"`
+}
+
+type DeliveryInfo struct{
+	MessageCount    uint32     `json:"message_count"`
+	ConsumerTag     string     `json:"consumer_tag"`
+	DeliveryTag     uint64     `json:"delivery_tag"`
 	Redelivered     bool       `json:"redelivered"`
+	Exchange        string     `json:"exchange"`
 	RoutingKey      string     `json:"routing_key"`
 }
 
@@ -74,8 +81,9 @@ func (c *Consumer) Consume() {
 			input := d.Body
 			if c.IncludeMetadata {
 				input, err = json.Marshal(&struct {
-					Properties             `json:"properties"`
-					Body        string     `json:"body"`
+					Properties             	`json:"properties"`
+					DeliveryInfo        	`json:"delivery_info"`
+					Body         string 	`json:"body"`
 				}{
 
 					Properties: Properties {
@@ -92,7 +100,14 @@ func (c *Consumer) Consume() {
 						Type:            d.Type,
 						AppId:           d.AppId,
 						UserId:          d.UserId,
+					},
+
+					DeliveryInfo: DeliveryInfo {
+						ConsumerTag:     d.ConsumerTag,
+						MessageCount:    d.MessageCount,
+						DeliveryTag:     d.DeliveryTag,
 						Redelivered:     d.Redelivered,
+						Exchange:        d.Exchange,
 						RoutingKey:      d.RoutingKey,
 					},
 

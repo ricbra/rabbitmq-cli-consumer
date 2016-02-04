@@ -303,8 +303,14 @@ the following.
     "timestamp": "0001-01-01T00:00:00Z",
     "type": "",
     "user_id": "",
-    "app_id": "",
-    "redelivered": false,
+    "app_id": ""
+  },
+  "delivery_info": {
+    "message_count": 0,
+    "consumer_tag": "ctag-./rabbitmq-cli-consumer-1",
+    "delivery_tag": 2,
+    "redelivered": true,
+    "exchange": "example",
     "routing_key": ""
   },
   "body": ""
