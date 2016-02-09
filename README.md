@@ -379,7 +379,47 @@ class TestCommand extends ContainerAwareCommand
 }
 ```
 
+# Strict exit code processing
 
+By default, any non-zero exit code will make consumer send a negative acknowledgement and re-queue message back to the queue, in some cases it may cause your consumer to fall into an infinite loop as re-queued message will be getting back to consumer and it probably will fail again. 
+ 
+It's possible to get better control over message acknowledgement by setting up strict exit code processing. In this mode consumer will acknowledge messages only if executable process return an allowed exit code.
+
+**Allowed exit codes**
+
+| Exit Code | Action                                |
+|:---------:|---------------------------------------|
+| 0         | Acknowledgement                       |
+| 3         | Reject                                |
+| 4         | Reject and re-queue                   |
+| 5         | Negative acknowledgement              |
+| 6         | Negative acknowledgement and re-queue |
+
+All other exit codes will cause consumer to fail.
+
+Run consumer with `--strict-exit-code` option to enable strict exit code processing:
+
+    $ rabbitmq-cli-consumer -e "/path/to/your/app argument --flag" -c /path/to/your/configuration.conf --strict-exit-code
+
+Make sure your executable returns correct exit code
+
+```php
+#!/usr/bin/env php
+<?php
+// ...
+try {
+    if (do_heavy_lifting($data)) {
+        // All well, then return 0
+        exit(0);
+    }
+} catch(InvalidMessageBody $e) {
+    exit(3); // Message is invalid, just reject and don't try to process again
+} catch(TimeoutException $e) {
+    exit(4); // Reject and try again
+} catch(Exception $e) {
+    exit(1); // Unexpected exception will cause consumer to stop consuming
+}
+```
 
 # Developing
 

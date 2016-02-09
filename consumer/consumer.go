@@ -16,6 +16,14 @@ import (
 	"os"
 )
 
+const (
+	EXIT_ACK = 0
+	EXIT_REJECT = 3
+	EXIT_REJECT_REQUEUE = 4
+	EXIT_NACK = 5
+	EXIT_NACK_REQUEUE = 6
+)
+
 type Consumer struct {
 	Channel         *amqp.Channel
 	Connection      *amqp.Connection
@@ -26,6 +34,7 @@ type Consumer struct {
 	Executer        *command.CommandExecuter
 	Compression     bool
 	IncludeMetadata bool
+	StrictExitCode  bool
 }
 
 type Properties struct{
@@ -65,6 +74,7 @@ func (c *Consumer) Consume() {
 	if err != nil {
 		c.ErrLogger.Fatalf("Failed to register a consumer: %s", err)
 	}
+
 	c.InfLogger.Println("Succeeded registering consumer.")
 
 	defer c.Connection.Close()
@@ -72,6 +82,7 @@ func (c *Consumer) Consume() {
 
 	closeErr := make(chan *amqp.Error)
 	closeErr = c.Connection.NotifyClose(closeErr)
+
 	go ConnectionCloseHandler(closeErr, c)
 
 	forever := make(chan bool)
@@ -79,6 +90,7 @@ func (c *Consumer) Consume() {
 	go func() {
 		for d := range msgs {
 			input := d.Body
+
 			if c.IncludeMetadata {
 				input, err = json.Marshal(&struct {
 					Properties             	`json:"properties"`
@@ -118,6 +130,7 @@ func (c *Consumer) Consume() {
 					d.Nack(true, true)
 				}
 			}
+
 			if c.Compression {
 				var b bytes.Buffer
 				w, err := zlib.NewWriterLevel(&b, zlib.BestCompression)
@@ -133,15 +146,45 @@ func (c *Consumer) Consume() {
 			}
 
 			cmd := c.Factory.Create(base64.StdEncoding.EncodeToString(input))
-			if c.Executer.Execute(cmd) {
-				d.Ack(true)
-			} else {
-				d.Nack(true, true)
+
+			exitCode := c.Executer.Execute(cmd);
+
+			err := c.ack(d, exitCode)
+
+			if err != nil {
+				c.ErrLogger.Fatalf("Message acknowledgement error: %v", err)
+				os.Exit(11)
 			}
 		}
 	}()
+
 	c.InfLogger.Println("Waiting for messages...")
 	<-forever
+}
+
+func (c *Consumer) ack(d amqp.Delivery, exitCode int) (error) {
+	if c.StrictExitCode == false && exitCode != EXIT_ACK {
+		d.Nack(true, true)
+		return nil
+	}
+
+	switch exitCode {
+	case EXIT_ACK:
+		d.Ack(true)
+	case EXIT_REJECT:
+		d.Reject(false)
+	case EXIT_REJECT_REQUEUE:
+		d.Reject(true)
+	case EXIT_NACK:
+		d.Nack(true, false)
+	case EXIT_NACK_REQUEUE:
+		d.Nack(true, true)
+	default:
+		d.Nack(true, true)
+		return errors.New(fmt.Sprintf("Unexpected exit code %v", exitCode));
+	}
+
+	return nil
 }
 
 func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogger *log.Logger) (*Consumer, error) {
