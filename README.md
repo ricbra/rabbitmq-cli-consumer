@@ -283,7 +283,7 @@ If you need to access message headers or properties, call the command with the
 
     $ rabbitmq-cli-consumer -e "/home/vagrant/current/app/command.php" -c example.conf -i
 
-The script then will recieve an json encoded data structure which looks like
+The script then will receive a json encoded data structure which looks like
 the following.
 
 ```json
@@ -304,6 +304,14 @@ the following.
     "type": "",
     "user_id": "",
     "app_id": ""
+  },
+  "delivery_info": {
+    "message_count": 0,
+    "consumer_tag": "ctag-./rabbitmq-cli-consumer-1",
+    "delivery_tag": 2,
+    "redelivered": true,
+    "exchange": "example",
+    "routing_key": ""
   },
   "body": ""
 }
