@@ -115,8 +115,10 @@ username = username-of-rabbitmq-user
 password = secret
 vhost=/your-vhost
 port=5672
-queue=name-of-queue
 compression=Off
+
+[queue]
+queue=name-of-queue
 
 [logs]
 error = /location/to/error.log
@@ -239,8 +241,10 @@ username = username-of-rabbitmq-user
 password = secret
 vhost=/your-vhost
 port=5672
-queue=name-of-queue
 compression=On
+
+[queue]
+queue=name-of-queue
 
 [logs]
 error = /location/to/error.log
