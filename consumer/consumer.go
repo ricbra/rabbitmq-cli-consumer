@@ -221,7 +221,7 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 	}
 	infLogger.Println("Succeeded setting QoS.")
 
-    infLogger.Printf("Declaring queue \"%s\"...", cfg.RabbitMq.Queue)
+	infLogger.Printf("Declaring queue \"%s\"...", cfg.RabbitMq.Queue)
 	_, err = ch.QueueDeclare(cfg.RabbitMq.Queue, true, false, false, false, sanitizeQueueArgs(cfg))
 
 	if nil != err {
