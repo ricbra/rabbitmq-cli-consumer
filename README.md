@@ -373,8 +373,8 @@ class TestCommand extends ContainerAwareCommand
         $consumer = $this->getContainer()->get('consumer');
 
         if (false == $consumer->execute($message)) {
-        exit(1);
-    }
+            exit(1);
+        }
     }
 }
 ```
