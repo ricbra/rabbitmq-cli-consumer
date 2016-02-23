@@ -19,6 +19,12 @@ type Config struct {
 		Count     int
 		Global    bool
 	}
+	QueueSettings struct {
+        Routingkey  string
+        MessageTTL  int
+        DeadLetterExchange   string
+        DeadLetterRoutingKey string
+    }
 	Exchange struct {
 		Name		string
 		Autodelete	bool

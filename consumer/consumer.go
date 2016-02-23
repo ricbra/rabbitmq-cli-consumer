@@ -222,7 +222,7 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 	infLogger.Println("Succeeded setting QoS.")
 
 	infLogger.Printf("Declaring queue \"%s\"...", cfg.RabbitMq.Queue)
-	_, err = ch.QueueDeclare(cfg.RabbitMq.Queue, true, false, false, false, nil)
+	_, err = ch.QueueDeclare(cfg.RabbitMq.Queue, true, false, false, false, sanitizeQueueArgs(cfg))
 
 	if nil != err {
 		return nil, errors.New(fmt.Sprintf("Failed to declare queue: %s", err.Error()))
@@ -244,7 +244,7 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 
 		// Bind queue
 		infLogger.Printf("Binding queue \"%s\" to exchange \"%s\"...", cfg.RabbitMq.Queue, cfg.Exchange.Name)
-		err = ch.QueueBind(cfg.RabbitMq.Queue, "", cfg.Exchange.Name, false, nil)
+		err = ch.QueueBind(cfg.RabbitMq.Queue, cfg.QueueSettings.Routingkey, cfg.Exchange.Name, false, nil)
 
 		if nil != err {
 			return nil, errors.New(fmt.Sprintf("Failed to bind queue to exchange: %s", err.Error()))
@@ -260,5 +260,28 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 		InfLogger:   infLogger,
 		Executer:    command.New(errLogger, infLogger),
 		Compression: cfg.RabbitMq.Compression,
-	}, nil
+    }, nil
+}
+
+func sanitizeQueueArgs(cfg *config.Config) (amqp.Table) {
+
+   args := make(amqp.Table)
+
+   if (cfg.QueueSettings.MessageTTL > 0) {
+       args["x-message-ttl"] = cfg.QueueSettings.MessageTTL
+   }
+
+   if (cfg.QueueSettings.DeadLetterExchange != "") {
+       args[ "x-dead-letter-exchange"] = cfg.QueueSettings.DeadLetterExchange
+
+       if (cfg.QueueSettings.DeadLetterRoutingKey != "") {
+           args["x-dead-letter-routing-key"] = cfg.QueueSettings.DeadLetterRoutingKey
+       }
+   }
+
+   if (len(args) > 0) {
+       return args;
+   }
+
+   return nil;
 }
