@@ -221,8 +221,8 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 	}
 	infLogger.Println("Succeeded setting QoS.")
 
-    infLogger.Printf("Declaring queue \"%s\"...", cfg.Queue.Name)
-	_, err = ch.QueueDeclare(cfg.Queue.Name, true, false, false, false, sanitizeQueueArgs(cfg))
+    infLogger.Printf("Declaring queue \"%s\"...", cfg.RabbitMq.Queue)
+	_, err = ch.QueueDeclare(cfg.RabbitMq.Queue, true, false, false, false, sanitizeQueueArgs(cfg))
 
 	if nil != err {
 		return nil, errors.New(fmt.Sprintf("Failed to declare queue: %s", err.Error()))
@@ -243,8 +243,8 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 		}
 
 		// Bind queue
-		infLogger.Printf("Binding queue \"%s\" to exchange \"%s\"...", cfg.Queue.Name, cfg.Exchange.Name)
-		err = ch.QueueBind(cfg.Queue.Name, cfg.Queue.Routingkey, cfg.Exchange.Name, false, nil)
+		infLogger.Printf("Binding queue \"%s\" to exchange \"%s\"...", cfg.RabbitMq.Queue, cfg.Exchange.Name)
+		err = ch.QueueBind(cfg.RabbitMq.Queue, cfg.QueueSettings.Routingkey, cfg.Exchange.Name, false, nil)
 
 		if nil != err {
 			return nil, errors.New(fmt.Sprintf("Failed to bind queue to exchange: %s", err.Error()))
@@ -254,28 +254,28 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 	return &Consumer{
 		Channel:     ch,
 		Connection:  conn,
-		Queue:       cfg.Queue.Name,
+		Queue:       cfg.RabbitMq.Queue,
 		Factory:     factory,
 		ErrLogger:   errLogger,
 		InfLogger:   infLogger,
 		Executer:    command.New(errLogger, infLogger),
 		Compression: cfg.RabbitMq.Compression,
-	}, nil
+    }, nil
 }
 
 func sanitizeQueueArgs(cfg *config.Config) (amqp.Table) {
 
    args := make(amqp.Table)
 
-   if (cfg.Queue.MessageTTL > 0) {
-       args["x-message-ttl"] = cfg.Queue.MessageTTL
+   if (cfg.QueueSettings.MessageTTL > 0) {
+       args["x-message-ttl"] = cfg.QueueSettings.MessageTTL
    }
 
-   if (cfg.Queue.DeadLetterExchange != "") {
-       args[ "x-dead-letter-exchange"] = cfg.Queue.DeadLetterExchange
+   if (cfg.QueueSettings.DeadLetterExchange != "") {
+       args[ "x-dead-letter-exchange"] = cfg.QueueSettings.DeadLetterExchange
 
-       if (cfg.Queue.DeadLetterRoutingKey != "") {
-           args["x-dead-letter-routing-key"] = cfg.Queue.DeadLetterRoutingKey
+       if (cfg.QueueSettings.DeadLetterRoutingKey != "") {
+           args["x-dead-letter-routing-key"] = cfg.QueueSettings.DeadLetterRoutingKey
        }
    }
 

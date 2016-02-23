@@ -115,10 +115,8 @@ username = username-of-rabbitmq-user
 password = secret
 vhost=/your-vhost
 port=5672
-compression=Off
-
-[queue]
 queue=name-of-queue
+compression=Off
 
 [logs]
 error = /location/to/error.log
@@ -241,10 +239,8 @@ username = username-of-rabbitmq-user
 password = secret
 vhost=/your-vhost
 port=5672
-compression=On
-
-[queue]
 queue=name-of-queue
+compression=On
 
 [logs]
 error = /location/to/error.log
@@ -377,16 +373,16 @@ class TestCommand extends ContainerAwareCommand
         $consumer = $this->getContainer()->get('consumer');
 
         if (false == $consumer->execute($message)) {
-		exit(1);
-	}
+        exit(1);
+    }
     }
 }
 ```
 
 # Strict exit code processing
 
-By default, any non-zero exit code will make consumer send a negative acknowledgement and re-queue message back to the queue, in some cases it may cause your consumer to fall into an infinite loop as re-queued message will be getting back to consumer and it probably will fail again. 
- 
+By default, any non-zero exit code will make consumer send a negative acknowledgement and re-queue message back to the queue, in some cases it may cause your consumer to fall into an infinite loop as re-queued message will be getting back to consumer and it probably will fail again.
+
 It's possible to get better control over message acknowledgement by setting up strict exit code processing. In this mode consumer will acknowledge messages only if executable process return an allowed exit code.
 
 **Allowed exit codes**

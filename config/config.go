@@ -12,14 +12,14 @@ type Config struct {
 		Password    string
 		Port        string
 		Vhost       string
+		Queue       string
 		Compression bool
 	}
 	Prefetch struct {
 		Count     int
 		Global    bool
 	}
-	Queue struct {
-        Name        string
+	QueueSettings struct {
         Routingkey  string
         MessageTTL  int
         DeadLetterExchange   string
