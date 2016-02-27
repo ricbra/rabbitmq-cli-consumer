@@ -11,7 +11,7 @@ fi
 ARCHS['amd64']='amd64'
 ARCHS['386']='i386'
 
-DIR=`mktemp -d`
+DIR=`mktemp -d /tmp/rabbitmq.XXXX`
 CWD=`pwd`
 
 for ARCH in 'amd64' '386'
