@@ -4,24 +4,26 @@ import (
 	"bytes"
 	"compress/zlib"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"net/url"
+	"os"
+	"time"
+
 	"github.com/ricbra/rabbitmq-cli-consumer/command"
 	"github.com/ricbra/rabbitmq-cli-consumer/config"
 	"github.com/streadway/amqp"
-	"log"
-	"net/url"
-	"encoding/json"
-	"time"
-	"os"
 )
 
 const (
-	EXIT_ACK = 0
-	EXIT_REJECT = 3
+	EXIT_ACK            = 0
+	EXIT_REJECT         = 3
 	EXIT_REJECT_REQUEUE = 4
-	EXIT_NACK = 5
-	EXIT_NACK_REQUEUE = 6
+	EXIT_NACK           = 5
+	EXIT_NACK_REQUEUE   = 6
+	EMPTY_STRING        = "<empty>"
 )
 
 type Consumer struct {
@@ -37,7 +39,7 @@ type Consumer struct {
 	StrictExitCode  bool
 }
 
-type Properties struct{
+type Properties struct {
 	Headers         amqp.Table `json:"application_headers"`
 	ContentType     string     `json:"content_type"`
 	ContentEncoding string     `json:"content_encoding"`
@@ -53,17 +55,17 @@ type Properties struct{
 	AppId           string     `json:"app_id"`
 }
 
-type DeliveryInfo struct{
-	MessageCount    uint32     `json:"message_count"`
-	ConsumerTag     string     `json:"consumer_tag"`
-	DeliveryTag     uint64     `json:"delivery_tag"`
-	Redelivered     bool       `json:"redelivered"`
-	Exchange        string     `json:"exchange"`
-	RoutingKey      string     `json:"routing_key"`
+type DeliveryInfo struct {
+	MessageCount uint32 `json:"message_count"`
+	ConsumerTag  string `json:"consumer_tag"`
+	DeliveryTag  uint64 `json:"delivery_tag"`
+	Redelivered  bool   `json:"redelivered"`
+	Exchange     string `json:"exchange"`
+	RoutingKey   string `json:"routing_key"`
 }
 
 func ConnectionCloseHandler(closeErr chan *amqp.Error, c *Consumer) {
-	err := <- closeErr
+	err := <-closeErr
 	c.ErrLogger.Fatalf("Connection closed: %v", err)
 	os.Exit(10)
 }
@@ -93,12 +95,12 @@ func (c *Consumer) Consume() {
 
 			if c.IncludeMetadata {
 				input, err = json.Marshal(&struct {
-					Properties             	`json:"properties"`
-					DeliveryInfo        	`json:"delivery_info"`
-					Body         string 	`json:"body"`
+					Properties   `json:"properties"`
+					DeliveryInfo `json:"delivery_info"`
+					Body         string `json:"body"`
 				}{
 
-					Properties: Properties {
+					Properties: Properties{
 						Headers:         d.Headers,
 						ContentType:     d.ContentType,
 						ContentEncoding: d.ContentEncoding,
@@ -114,16 +116,16 @@ func (c *Consumer) Consume() {
 						UserId:          d.UserId,
 					},
 
-					DeliveryInfo: DeliveryInfo {
-						ConsumerTag:     d.ConsumerTag,
-						MessageCount:    d.MessageCount,
-						DeliveryTag:     d.DeliveryTag,
-						Redelivered:     d.Redelivered,
-						Exchange:        d.Exchange,
-						RoutingKey:      d.RoutingKey,
+					DeliveryInfo: DeliveryInfo{
+						ConsumerTag:  d.ConsumerTag,
+						MessageCount: d.MessageCount,
+						DeliveryTag:  d.DeliveryTag,
+						Redelivered:  d.Redelivered,
+						Exchange:     d.Exchange,
+						RoutingKey:   d.RoutingKey,
 					},
 
-					Body:            string(d.Body),
+					Body: string(d.Body),
 				})
 				if err != nil {
 					c.ErrLogger.Fatalf("Failed to marshall: %s", err)
@@ -147,7 +149,7 @@ func (c *Consumer) Consume() {
 
 			cmd := c.Factory.Create(base64.StdEncoding.EncodeToString(input))
 
-			exitCode := c.Executer.Execute(cmd);
+			exitCode := c.Executer.Execute(cmd)
 
 			err := c.ack(d, exitCode)
 
@@ -162,7 +164,7 @@ func (c *Consumer) Consume() {
 	<-forever
 }
 
-func (c *Consumer) ack(d amqp.Delivery, exitCode int) (error) {
+func (c *Consumer) ack(d amqp.Delivery, exitCode int) error {
 	if c.StrictExitCode == false && exitCode != EXIT_ACK {
 		d.Nack(true, true)
 		return nil
@@ -181,7 +183,7 @@ func (c *Consumer) ack(d amqp.Delivery, exitCode int) (error) {
 		d.Nack(true, true)
 	default:
 		d.Nack(true, true)
-		return errors.New(fmt.Sprintf("Unexpected exit code %v", exitCode));
+		return errors.New(fmt.Sprintf("Unexpected exit code %v", exitCode))
 	}
 
 	return nil
@@ -260,28 +262,36 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 		InfLogger:   infLogger,
 		Executer:    command.New(errLogger, infLogger),
 		Compression: cfg.RabbitMq.Compression,
-    }, nil
+	}, nil
 }
 
-func sanitizeQueueArgs(cfg *config.Config) (amqp.Table) {
+func sanitizeQueueArgs(cfg *config.Config) amqp.Table {
 
-   args := make(amqp.Table)
+	args := make(amqp.Table)
 
-   if (cfg.QueueSettings.MessageTTL > 0) {
-       args["x-message-ttl"] = cfg.QueueSettings.MessageTTL
-   }
+	if cfg.QueueSettings.MessageTTL > 0 {
+		args["x-message-ttl"] = int32(cfg.QueueSettings.MessageTTL)
+	}
 
-   if (cfg.QueueSettings.DeadLetterExchange != "") {
-       args[ "x-dead-letter-exchange"] = cfg.QueueSettings.DeadLetterExchange
+	if cfg.QueueSettings.DeadLetterExchange != "" {
+		args["x-dead-letter-exchange"] = transformToStringValue(cfg.QueueSettings.DeadLetterExchange)
 
-       if (cfg.QueueSettings.DeadLetterRoutingKey != "") {
-           args["x-dead-letter-routing-key"] = cfg.QueueSettings.DeadLetterRoutingKey
-       }
-   }
+		if cfg.QueueSettings.DeadLetterRoutingKey != "" {
+			args["x-dead-letter-routing-key"] = transformToStringValue(cfg.QueueSettings.DeadLetterRoutingKey)
+		}
+	}
 
-   if (len(args) > 0) {
-       return args;
-   }
+	if len(args) > 0 {
+		return args
+	}
 
-   return nil;
+	return nil
+}
+
+func transformToStringValue(val string) string {
+	if val == EMPTY_STRING {
+		return ""
+	}
+
+	return val
 }

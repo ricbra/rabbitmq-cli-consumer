@@ -155,6 +155,13 @@ type=direct
 durable=On
 ```
 
+### How to configure an empty string value
+
+In Go the zero value for a string is `""`. So, any values not configured in the config file will result in a
+empty string. Now imagine you want to define an empty name for one of the configuration settings. Yes, we now
+cannot determine whether this value was empty on purpose or just left out. If you want to configure an empty string
+you have to be explicit by using the value `<empty>`.
+
 ## The executable
 
 Your executable receives the message as the last argument. So consider the following:
@@ -424,5 +431,3 @@ try {
 # Developing
 
 Missing anything? Found a bug? I love to see your PR.
-
-
