@@ -37,6 +37,7 @@ type Consumer struct {
 	Compression     bool
 	IncludeMetadata bool
 	StrictExitCode  bool
+	OnFailure       int
 }
 
 type Properties struct {
@@ -165,8 +166,22 @@ func (c *Consumer) Consume() {
 }
 
 func (c *Consumer) ack(d amqp.Delivery, exitCode int) error {
-	if c.StrictExitCode == false && exitCode != EXIT_ACK {
-		d.Nack(true, true)
+	if c.StrictExitCode == false {
+		if exitCode == EXIT_ACK {
+			d.Ack(true)
+		}
+		switch c.OnFailure {
+		case EXIT_REJECT:
+			d.Reject(false)
+		case EXIT_REJECT_REQUEUE:
+			d.Reject(true)
+		case EXIT_NACK:
+			d.Nack(true, false)
+		case EXIT_NACK_REQUEUE:
+			d.Nack(true, true)
+		default:
+			d.Nack(true, true)
+		}
 		return nil
 	}
 
@@ -246,7 +261,7 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 
 		// Bind queue
 		infLogger.Printf("Binding queue \"%s\" to exchange \"%s\"...", cfg.RabbitMq.Queue, cfg.Exchange.Name)
-		err = ch.QueueBind(cfg.RabbitMq.Queue, cfg.QueueSettings.Routingkey, cfg.Exchange.Name, false, nil)
+		err = ch.QueueBind(cfg.RabbitMq.Queue, transformToStringValue(cfg.QueueSettings.Routingkey), transformToStringValue(cfg.Exchange.Name), false, nil)
 
 		if nil != err {
 			return nil, errors.New(fmt.Sprintf("Failed to bind queue to exchange: %s", err.Error()))
@@ -262,6 +277,7 @@ func New(cfg *config.Config, factory *command.CommandFactory, errLogger, infLogg
 		InfLogger:   infLogger,
 		Executer:    command.New(errLogger, infLogger),
 		Compression: cfg.RabbitMq.Compression,
+		OnFailure:   cfg.RabbitMq.Onfailure,
 	}, nil
 }
 

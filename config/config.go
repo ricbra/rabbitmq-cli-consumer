@@ -1,8 +1,9 @@
 package config
 
 import (
-	"gopkg.in/gcfg.v1"
 	"path/filepath"
+
+	"gopkg.in/gcfg.v1"
 )
 
 type Config struct {
@@ -14,22 +15,23 @@ type Config struct {
 		Vhost       string
 		Queue       string
 		Compression bool
+		Onfailure   int
 	}
 	Prefetch struct {
-		Count     int
-		Global    bool
+		Count  int
+		Global bool
 	}
 	QueueSettings struct {
-        Routingkey  string
-        MessageTTL  int
-        DeadLetterExchange   string
-        DeadLetterRoutingKey string
-    }
+		Routingkey           string
+		MessageTTL           int
+		DeadLetterExchange   string
+		DeadLetterRoutingKey string
+	}
 	Exchange struct {
-		Name		string
-		Autodelete	bool
-		Type		string
-		Durable		bool
+		Name       string
+		Autodelete bool
+		Type       string
+		Durable    bool
 	}
 	Logs struct {
 		Error string
