@@ -17,7 +17,7 @@ func main() {
 	app.Usage = "Consume RabbitMQ easily to any cli program"
 	app.Author = "Richard van den Brand"
 	app.Email = "richard@vandenbrand.org"
-	app.Version = "1.4.0"
+	app.Version = "1.4.1"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "executable, e",
