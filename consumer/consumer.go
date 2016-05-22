@@ -169,6 +169,7 @@ func (c *Consumer) ack(d amqp.Delivery, exitCode int) error {
 	if c.StrictExitCode == false {
 		if exitCode == EXIT_ACK {
 			d.Ack(true)
+			return nil
 		}
 		switch c.OnFailure {
 		case EXIT_REJECT:
