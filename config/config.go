@@ -7,7 +7,7 @@ import (
 
 	"github.com/codegangsta/cli"
 
-	"code.google.com/p/gcfg"
+	"gopkg.in/gcfg.v1"
 
 	"gopkg.in/validator.v2"
 )

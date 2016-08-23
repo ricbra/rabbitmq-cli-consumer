@@ -9,7 +9,7 @@ import (
 	"os/user"
 	"syscall"
 
-	"code.google.com/p/gcfg"
+	"gopkg.in/gcfg.v1"
 
 	"github.com/codegangsta/cli"
 	"github.com/ricbra/rabbitmq-cli-consumer/command"
