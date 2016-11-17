@@ -373,8 +373,8 @@ class TestCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $data = json_decode(base64_decode($input->getArgument('event')));
-        $message = new AMQPMessage($data->body, $data->properties);
+        $data = json_decode(base64_decode($input->getArgument('event')), true);
+        $message = new AMQPMessage($data['body'], $data['properties']);
 
         /** @var \PhpAmqpLib\Message\AMQPMessage\ConsumerInterface $consumer */
         $consumer = $this->getContainer()->get('consumer');
