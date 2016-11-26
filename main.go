@@ -55,10 +55,6 @@ func main() {
 		logger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
 		cfg, err := config.LoadAndParse(c.String("configuration"))
 
-		if c.String("queue-name") != "" {
-			cfg.RabbitMq.Queue = c.String("queue-name")
-		}
-
 		if err != nil {
 			logger.Fatalf("Failed parsing configuration: %s\n", err)
 		}
@@ -71,6 +67,10 @@ func main() {
 		infLogger, err := createLogger(cfg.Logs.Info, verbose, os.Stdout)
 		if err != nil {
 			logger.Fatalf("Failed creating info log: %s", err)
+		}
+
+		if c.String("queue-name") != "" {
+			cfg.RabbitMq.Queue = c.String("queue-name")
 		}
 
 		factory := command.Factory(c.String("executable"))
