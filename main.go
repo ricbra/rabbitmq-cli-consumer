@@ -39,6 +39,10 @@ func main() {
 			Name:  "strict-exit-code",
 			Usage: "Strict exit code processing will rise a fatal error if exit code is different from allowed onces.",
 		},
+		cli.StringFlag{
+			Name:  "queue-name, q",
+			Usage: "Optional queue name to which can be passed in, without needing to define it in config, if set will override config queue name",
+		},
 	}
 	app.Action = func(c *cli.Context) {
 		if c.String("configuration") == "" && c.String("executable") == "" {
@@ -50,6 +54,10 @@ func main() {
 
 		logger := log.New(os.Stderr, "", log.Ldate|log.Ltime)
 		cfg, err := config.LoadAndParse(c.String("configuration"))
+
+		if c.String("queue-name") != "" {
+			cfg.RabbitMq.Queue = c.String("queue-name")
+		}
 
 		if err != nil {
 			logger.Fatalf("Failed parsing configuration: %s\n", err)
