@@ -39,6 +39,10 @@ func main() {
 			Name:  "strict-exit-code",
 			Usage: "Strict exit code processing will rise a fatal error if exit code is different from allowed onces.",
 		},
+		cli.StringFlag{
+			Name:  "queue-name, q",
+			Usage: "Optional queue name to which can be passed in, without needing to define it in config, if set will override config queue name",
+		},
 	}
 	app.Action = func(c *cli.Context) {
 		if c.String("configuration") == "" && c.String("executable") == "" {
@@ -63,6 +67,10 @@ func main() {
 		infLogger, err := createLogger(cfg.Logs.Info, verbose, os.Stdout)
 		if err != nil {
 			logger.Fatalf("Failed creating info log: %s", err)
+		}
+
+		if c.String("queue-name") != "" {
+			cfg.RabbitMq.Queue = c.String("queue-name")
 		}
 
 		factory := command.Factory(c.String("executable"))
