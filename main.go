@@ -28,6 +28,10 @@ func main() {
 			Usage: "Location of configuration file",
 		},
 		cli.BoolFlag{
+			Name:  "output, o",
+			Usage: "Logging output from executable",
+		},
+		cli.BoolFlag{
 			Name:  "verbose, V",
 			Usage: "Enable verbose mode (logs to stdout and stderr)",
 		},
@@ -82,7 +86,7 @@ func main() {
 		client.IncludeMetadata = c.Bool("include")
 		client.StrictExitCode = c.Bool("strict-exit-code")
 
-		client.Consume()
+		client.Consume(c.Bool("output"))
 	}
 
 	app.Run(os.Args)

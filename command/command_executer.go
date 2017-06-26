@@ -18,13 +18,21 @@ func New(errLogger, infLogger *log.Logger) *CommandExecuter {
 	}
 }
 
-func (me CommandExecuter) Execute(cmd *exec.Cmd) int {
+func (me CommandExecuter) Execute(cmd *exec.Cmd, output bool) int {
 	me.infLogger.Println("Processing message...")
-	out, err := cmd.CombinedOutput()
+
+	var err interface{Error() string} = nil
+	if output {
+		cmd.Stdout = NewLogWriter(me.infLogger)
+		cmd.Stderr = NewLogWriter(me.errLogger)
+		err = cmd.Run()
+	} else if out, outErr := cmd.CombinedOutput(); outErr != nil {
+		me.errLogger.Printf("Failed: %s\n", string(out[:]))
+		err = outErr
+	}
 
 	if err != nil {
 		me.infLogger.Println("Failed. Check error log for details.")
-		me.errLogger.Printf("Failed: %s\n", string(out[:]))
 		me.errLogger.Printf("Error: %s\n", err)
 
 		if exiterr, ok := err.(*exec.ExitError); ok {
@@ -39,4 +47,21 @@ func (me CommandExecuter) Execute(cmd *exec.Cmd) int {
 	me.infLogger.Println("Processed!")
 
 	return 0
+}
+
+type LogWriter struct {
+	logger *log.Logger
+}
+
+func NewLogWriter(l *log.Logger) *LogWriter {
+	lw := &LogWriter{}
+	lw.logger = l
+	return lw
+}
+
+func (lw LogWriter) Write (p []byte) (n int, err error) {
+	lw.logger.SetFlags(0)
+	lw.logger.Printf("%s", p)
+	lw.logger.SetFlags(log.Ldate|log.Ltime)
+	return len(p), nil
 }
