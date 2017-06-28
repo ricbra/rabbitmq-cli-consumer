@@ -29,7 +29,7 @@ func main() {
 		},
 		cli.BoolFlag{
 			Name:  "output, o",
-			Usage: "Logging output from executable",
+			Usage: "Enable logging of output from executable",
 		},
 		cli.BoolFlag{
 			Name:  "verbose, V",
