@@ -71,7 +71,7 @@ func ConnectionCloseHandler(closeErr chan *amqp.Error, c *Consumer) {
 	os.Exit(10)
 }
 
-func (c *Consumer) Consume() {
+func (c *Consumer) Consume(output bool) {
 	c.InfLogger.Println("Registering consumer... ")
 	msgs, err := c.Channel.Consume(c.Queue, "", false, false, false, false, nil)
 	if err != nil {
@@ -150,7 +150,7 @@ func (c *Consumer) Consume() {
 
 			cmd := c.Factory.Create(base64.StdEncoding.EncodeToString(input))
 
-			exitCode := c.Executer.Execute(cmd)
+			exitCode := c.Executer.Execute(cmd, output)
 
 			err := c.ack(d, exitCode)
 
