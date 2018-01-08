@@ -1,6 +1,14 @@
 RabbitMQ cli consumer
 ---------------------
 
+**Deprecated**
+
+*All good things come to an end. As of January 1st 2018, this library won't be updated anymore. The APT repository
+and the library in its current form will be kept online.*
+
+*There is also good news: there is an [official fork](https://github.com/corvus-ch/rabbitmq-cli-consumer) maintained by
+[Christian Häusler](https://github.com/corvus-ch) which I support. All users are encouraged to use his fork instead.*
+
 If you are a fellow PHP developer just like me you're probably aware of the following fact:
 PHP really SUCKS in long running tasks.
 
